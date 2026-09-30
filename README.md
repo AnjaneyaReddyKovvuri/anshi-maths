@@ -36,6 +36,8 @@ export JAVA_HOME=~/.local/toolchains/jdk17
 
 ## Web version (no install, no build)
 
-`web/anshi-maths-offline.html` is the same quiz as a single HTML file. Copy it to the phone and
-open it in Chrome; it works offline. `web/anshi-maths.html` is the published page source
-(the publisher adds the `<html>/<head>` wrapper).
+Play online: https://anjaneyareddykovvuri.github.io/anshi-maths/
+
+`docs/index.html` is the same quiz as a single HTML file, served by GitHub Pages. You can also
+copy it to a phone and open it in Chrome to play offline. `web/anshi-maths.html` is the
+claude.ai artifact source (the publisher adds the `<html>/<head>` wrapper).
