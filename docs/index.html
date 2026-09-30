@@ -1,10 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#5b3cc4">
-<style>body{margin:0}[hidden]{display:none!important}</style>
 <title>Anshi Maths</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,6 +26,7 @@
     --shadow: 0 4px 0 rgba(60, 35, 140, .14);
     --display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
     --body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -45,8 +45,10 @@
     color-scheme: dark;
   }
 
+  [hidden] { display: none !important; }
   html, body { height: 100%; }
   body {
+    margin: 0;
     background: var(--bg);
     color: var(--ink);
     font-family: var(--body);
@@ -87,6 +89,20 @@
     color: var(--muted);
     margin-left: .5em;
   }
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mode {
+    background: var(--card);
+    border: 2px solid var(--line);
+    border-radius: 18px;
+    padding: 12px 10px;
+    text-align: left;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .mode b { font-family: var(--display); font-size: 1.25rem; line-height: 1.1; }
+  .mode small { color: var(--muted); font-weight: 700; font-size: .78rem; }
+  .mode[aria-pressed="true"] { border-color: var(--grape); background: var(--grape-soft); box-shadow: inset 0 0 0 1px var(--grape); }
+  .mode[aria-pressed="true"] b { color: var(--grape); }
+
   fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
   legend {
     font-weight: 800;
@@ -150,7 +166,7 @@
   .timer { display: flex; align-items: center; gap: 12px; }
   .track { flex: 1; height: 14px; border-radius: 7px; background: var(--grape-soft); overflow: hidden; }
   .fill { height: 100%; width: 100%; border-radius: 7px; background: var(--good); transform-origin: left; }
-  .secs { font-weight: 800; font-size: 1.15rem; min-width: 2.6ch; text-align: right; font-variant-numeric: tabular-nums; }
+  .secs { font-weight: 800; font-size: 1.15rem; min-width: 3.4ch; text-align: right; font-variant-numeric: tabular-nums; }
   .question {
     background: var(--grape);
     color: var(--on-grape);
@@ -167,6 +183,17 @@
     text-align: center;
     line-height: 1.1;
   }
+  .question.word {
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 1.3rem;
+    line-height: 1.5;
+    text-align: left;
+    place-items: center start;
+    padding: 18px 20px;
+    min-height: 0;
+  }
+  .question.word strong { color: var(--marigold); font-weight: 800; }
   .feedback {
     min-height: 2.2rem;
     text-align: center;
@@ -174,6 +201,7 @@
     font-weight: 800;
     font-size: 1.5rem;
     margin: 0;
+    line-height: 1.2;
   }
   .feedback.good { color: var(--good); }
   .feedback.bad { color: var(--bad); }
@@ -187,10 +215,13 @@
     font-family: var(--display);
     font-weight: 800;
     font-size: 2.4rem;
+    line-height: 1;
     font-variant-numeric: tabular-nums;
     box-shadow: var(--shadow);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     transition: transform .08s, background-color .15s, opacity .15s;
   }
+  .opt small { font-family: var(--body); font-size: .85rem; font-weight: 700; opacity: .75; }
   .opt:active { transform: translateY(3px); box-shadow: none; }
   .opt:disabled { cursor: default; }
   .opt.right { background: var(--good); border-color: var(--good); color: #fff; }
@@ -218,6 +249,10 @@
   }
   .review .eq { flex: 1; font-family: var(--display); font-weight: 800; font-size: 1.4rem; color: var(--good); font-variant-numeric: tabular-nums; }
   .review .said { color: var(--bad); font-weight: 700; font-size: .9rem; }
+  .review li.long { flex-direction: column; align-items: stretch; gap: 6px; }
+  .review li.long .story { font-size: .95rem; line-height: 1.45; margin: 0; }
+  .review li.long .line { display: flex; align-items: baseline; gap: 12px; }
+  .review li.long .eq { font-size: 1.2rem; }
   .perfect { text-align: center; font-family: var(--display); font-weight: 800; font-size: 1.5rem; color: var(--good); margin: 12px 0; }
   .actions { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
 
@@ -229,96 +264,116 @@
 </style>
 </head>
 <body>
-
 <div class="app">
-  <!-- HOME -->
+  <!-- START -->
   <section class="screen" id="home">
     <header class="brand">
-      <div class="symbols" aria-hidden="true">+ − × ÷</div>
+      <div class="symbols" aria-hidden="true">+ − · :</div>
       <h1>Anshi <span>Maths</span></h1>
-      <p>Fast calculation practice</p>
+      <p>Schnelles Rechnen üben</p>
     </header>
 
-    <fieldset>
-      <legend>What shall we practise?</legend>
+    <div class="modes" id="modes"></div>
+
+    <fieldset data-mode="fast">
+      <legend>Was möchtest du üben?</legend>
       <div class="choices" id="ops"></div>
-      <p class="hint" id="ops-hint" hidden>Pick at least one.</p>
+      <p class="hint" id="ops-hint" hidden>Wähle mindestens eine Rechenart.</p>
     </fieldset>
     <fieldset>
-      <legend>Times tables (× and ÷)</legend>
+      <legend>Einmaleins (· und :)</legend>
       <div class="choices" id="table"></div>
     </fieldset>
-    <fieldset>
-      <legend>Add &amp; subtract up to</legend>
+    <fieldset data-mode="fast">
+      <legend>Plus &amp; Minus bis</legend>
       <div class="choices" id="addsub"></div>
     </fieldset>
-    <fieldset>
-      <legend>Seconds for each question</legend>
+    <fieldset data-mode="fast">
+      <legend>Sekunden pro Aufgabe</legend>
       <div class="choices" id="seconds"></div>
     </fieldset>
-    <fieldset>
-      <legend>Number of questions</legend>
+    <fieldset data-mode="word">
+      <legend>Sekunden pro Aufgabe</legend>
+      <div class="choices" id="wseconds"></div>
+    </fieldset>
+    <fieldset data-mode="fast">
+      <legend>Anzahl der Aufgaben</legend>
       <div class="choices" id="count"></div>
+    </fieldset>
+    <fieldset data-mode="word">
+      <legend>Anzahl der Aufgaben</legend>
+      <div class="choices" id="wcount"></div>
     </fieldset>
 
     <div class="actions">
-      <button class="big" id="start">Start ▶</button>
+      <button class="big" id="start">Los geht’s ▶</button>
     </div>
   </section>
 
   <!-- QUIZ -->
   <section class="screen" id="quiz" hidden>
     <div class="topbar">
-      <button class="quit" id="quit">✕ Quit</button>
-      <span class="count" id="qcount">Question 1 of 20</span>
+      <button class="quit" id="quit">✕ Beenden</button>
+      <span class="count" id="qcount">Aufgabe 1 von 20</span>
       <span class="stars" id="qscore">⭐ 0</span>
     </div>
     <div class="timer">
       <div class="track"><div class="fill" id="fill"></div></div>
-      <span class="secs" id="secs">20s</span>
+      <span class="secs" id="secs">20 s</span>
     </div>
-    <div class="question" id="qtext" aria-live="polite">7 × 8 = ?</div>
+    <div class="question" id="qtext" aria-live="polite">7 · 8 = ?</div>
     <p class="feedback" id="feedback" aria-live="assertive"></p>
     <div class="options" id="options"></div>
-    <p class="keys">Tip: on a keyboard, press 1 2 3 4</p>
+    <p class="keys">Tipp: Mit der Tastatur 1 2 3 4 drücken</p>
   </section>
 
-  <!-- RESULT -->
+  <!-- ERGEBNIS -->
   <section class="screen" id="result" hidden>
     <div class="result-head">
-      <h2 id="headline">Well done, Anshi!</h2>
+      <h2 id="headline">Toll gemacht, Anshi!</h2>
       <div class="starrow" id="starrow" aria-hidden="true">★★☆</div>
       <div class="score" id="score">17 / 20</div>
-      <div class="stats" id="stats">85% correct · 4.2s per answer</div>
+      <div class="stats" id="stats">85 % richtig · 4,2 s pro Antwort</div>
     </div>
     <div class="review" id="review"></div>
     <div class="actions">
-      <button class="big" id="again">Play again</button>
-      <button class="ghost" id="home-btn">Change settings</button>
+      <button class="big" id="again">Nochmal spielen</button>
+      <button class="ghost" id="home-btn">Einstellungen ändern</button>
     </div>
   </section>
 </div>
 
 <script>
 (() => {
+  // German school notation: · for multiply, : for divide.
   const OPS = {
-    add: { sym: "+", label: "Add" },
-    sub: { sym: "−", label: "Subtract" },
-    mul: { sym: "×", label: "Multiply" },
-    div: { sym: "÷", label: "Divide" },
+    add: { sym: "+", label: "Plus" },
+    sub: { sym: "−", label: "Minus" },
+    mul: { sym: "·", label: "Mal" },
+    div: { sym: ":", label: "Geteilt" },
+  };
+  const MODES = {
+    fast: { title: "⚡ Blitzrechnen", caption: "Kopfrechnen gegen die Uhr" },
+    word: { title: "📖 Textaufgaben", caption: "Rechengeschichten lesen und lösen" },
   };
   const OPTIONS = {
     table: [10, 20],
     addsub: [20, 100, 1000],
     seconds: [5, 10, 20, 30, 60],
     count: [10, 20, 30],
+    wseconds: [30, 60, 90, 120],
+    wcount: [5, 10, 15],
   };
-  const DEFAULTS = { ops: ["add", "sub", "mul", "div"], table: 10, addsub: 100, seconds: 20, count: 20 };
-  const CORRECT_PAUSE = 700, WRONG_PAUSE = 1800;
+  const DEFAULTS = {
+    mode: "fast", ops: ["add", "sub", "mul", "div"], table: 10, addsub: 100,
+    seconds: 20, count: 20, wseconds: 60, wcount: 10,
+  };
+  const CORRECT_PAUSE = 700, WRONG_PAUSE = 1800, WORD_WRONG_PAUSE = 3000;
   const STORE_KEY = "anshi-maths-settings";
 
   const $ = (id) => document.getElementById(id);
   const rand = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1)); // inclusive
+  const pick = (arr) => arr[rand(0, arr.length - 1)];
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rand(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
   // ---------- settings ----------
@@ -333,9 +388,11 @@
     try { localStorage.setItem(STORE_KEY, JSON.stringify(settings)); } catch (e) {}
   }
   let settings = loadSettings();
+  const isWord = () => settings.mode === "word";
+  const secondsPerQuestion = () => isWord() ? settings.wseconds : settings.seconds;
 
-  // ---------- questions ----------
-  function makeQuestion() {
+  // ---------- Blitzrechnen ----------
+  function makeFastQuestion() {
     const op = settings.ops[rand(0, settings.ops.length - 1)];
     const max = settings.addsub, t = settings.table;
     let a, b, answer;
@@ -343,11 +400,11 @@
     else if (op === "sub") { a = rand(2, max); b = rand(1, a); answer = a - b; }
     else if (op === "mul") { a = rand(1, t); b = rand(1, t); answer = a * b; }
     else { b = rand(1, t); answer = rand(1, t); a = b * answer; }
-    return { a, b, op, answer, text: `${a} ${OPS[op].sym} ${b}`, options: makeOptions(a, b, op, answer) };
+    return { text: `${a} ${OPS[op].sym} ${b}`, answer, options: fastOptions(a, b, op, answer) };
   }
 
   // Three near-miss wrong answers (the slips a child actually makes) plus the right one.
-  function makeOptions(a, b, op, answer) {
+  function fastOptions(a, b, op, answer) {
     let near;
     if (op === "mul") near = [a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b, answer + 1, answer - 1, answer + 10, answer - 10];
     else if (op === "div") near = [answer + 1, answer - 1, answer + 2, answer - 2, answer + 3];
@@ -358,20 +415,124 @@
     return shuffle([...wrong, answer]);
   }
 
+  // ---------- Textaufgaben ----------
+  // Each story mixes at least two operations. `traps` are the answers a child gets
+  // by skipping a step or using the wrong operation; they become the wrong choices.
+  const FRIENDS = ["Lena", "Mia", "Emma", "Paul", "Ben", "Noah", "Lina", "Finn"];
+  const GIVERS = ["Oma", "Opa", "Mama", "Papa"];
+  const n = (x) => `<strong>${x}</strong>`;
+  const t = () => settings.table; // largest factor, from the Einmaleins setting
+
+  const STORIES = [
+    () => { // + dann −
+      const a = rand(2, 20), b = rand(2, 20), c = rand(1, a + b - 1), g = pick(GIVERS);
+      return { text: `Anshi hat ${n(a)} Euro. Von ${g} bekommt sie ${n(b)} Euro dazu. Dann kauft sie ein Spielzeug für ${n(c)} Euro. Wie viel Geld hat Anshi jetzt?`,
+        answer: a + b - c, unit: "€", traps: [a + b, a + b + c, a - b + c] };
+    },
+    () => { // · dann −
+      const k = rand(2, 6), p = rand(2, t()), cost = k * p, s = [10, 20, 50, 100, 200].find((v) => v > cost);
+      return { text: `Anshi kauft ${n(k)} Hefte. Jedes Heft kostet ${n(p)} Euro. Sie bezahlt mit einem ${n(s)}-Euro-Schein. Wie viel Wechselgeld bekommt sie zurück?`,
+        answer: s - cost, unit: "€", traps: [cost, s - k - p, s - cost + p, s - cost - p] };
+    },
+    () => { // − dann :
+      const kids = rand(2, 6), q = rand(2, t()), e = rand(1, 9), friends = kids - 1;
+      return { text: `Anshi hat ${n(kids * q + e)} Bonbons. Sie isst selbst ${n(e)} Bonbons. Den Rest teilt sie gerecht zwischen sich und ${n(friends)} ${friends === 1 ? "Freundin" : "Freundinnen"} auf. Wie viele Bonbons bekommt jedes Kind?`,
+        answer: q, unit: "Bonbons", traps: [(kids * q) / friends, (kids * q + e) / kids, kids * q, q + e] };
+    },
+    () => { // · dann +
+      const r = rand(3, 8), s = rand(2, 6), x = rand(2, 9);
+      return { text: `In Anshis Klassenzimmer stehen ${n(r)} Tische. An jedem Tisch sitzen ${n(s)} Kinder. Heute kommen noch ${n(x)} Kinder aus der Nachbarklasse dazu. Wie viele Kinder sind jetzt im Raum?`,
+        answer: r * s + x, unit: "Kinder", traps: [r * s, r + s + x, r * s - x] };
+    },
+    () => { // · dann −
+      const w = rand(2, 10), k = rand(2, Math.min(t(), 12)), c = rand(1, w * k - 1);
+      return { text: `Anshi bekommt jede Woche ${n(w)} Euro Taschengeld. Sie spart ${n(k)} Wochen lang. Dann kauft sie ein Buch für ${n(c)} Euro. Wie viel Geld hat sie noch übrig?`,
+        answer: w * k - c, unit: "€", traps: [w * k, w * k + c, w + k - c] };
+    },
+    () => { // + dann :
+      const baskets = rand(2, Math.min(t(), 10)), q = rand(2, t()), total = baskets * q;
+      const x = rand(1, Math.min(10, total - 1)), bought = total - x;
+      return { text: `Mama kauft ${n(bought)} Äpfel. Oma bringt noch ${n(x)} Äpfel mit. Anshi verteilt alle Äpfel gleichmäßig auf ${n(baskets)} Körbe. Wie viele Äpfel kommen in jeden Korb?`,
+        answer: q, unit: "Äpfel", traps: [total, bought / baskets, q + x, q - 1] };
+    },
+    () => { // · dann +
+      const a = rand(6, 10), m = rand(4, 5), d = rand(22, 30);
+      return { text: `Anshi ist ${n(a)} Jahre alt. Ihr Papa ist ${n(m)}-mal so alt wie Anshi. Opa ist ${n(d)} Jahre älter als Papa. Wie alt ist Opa?`,
+        answer: a * m + d, unit: "Jahre", traps: [a * m, a + m + d, a * m - d] };
+    },
+    () => { // −, · und +
+      const a = rand(10, 40), b = rand(2, a - 1), k = rand(2, Math.min(t(), 10)), p = rand(2, t()), f = pick(FRIENDS);
+      return { text: `Anshi hat ${n(a)} Sticker. Sie schenkt ${f} ${n(b)} Sticker. Danach kauft sie ${n(k)} Päckchen mit je ${n(p)} Stickern. Wie viele Sticker hat Anshi jetzt?`,
+        answer: a - b + k * p, unit: "Sticker", traps: [a + b + k * p, a - b + k + p, a - b, a + k * p] };
+    },
+    () => { // · dann −
+      const k = rand(2, 5), p = rand(4, Math.max(8, t())), e = rand(1, k * p - 1);
+      return { text: `Papa backt ${n(k)} Kuchen und schneidet jeden Kuchen in ${n(p)} Stücke. Auf der Feier werden ${n(e)} Stücke gegessen. Wie viele Stücke bleiben übrig?`,
+        answer: k * p - e, unit: "Stücke", traps: [k * p, k * p + e, k + p - e] };
+    },
+    () => { // − dann :
+      const d = rand(2, t()), days = rand(2, 10), read = rand(5, 60), total = read + d * days;
+      return { text: `Anshis Buch hat ${n(total)} Seiten. ${n(read)} Seiten hat sie schon gelesen. Ab jetzt liest sie jeden Tag ${n(d)} Seiten. Wie viele Tage braucht sie noch, bis sie fertig ist?`,
+        answer: days, unit: "Tage", traps: [total / d, total - read, days + 1, days - 1] };
+    },
+    () => { // · , + und −
+      const a = rand(5, 25), b = rand(2, 3 * a - 1), f = pick(FRIENDS);
+      return { text: `Anshi hat ${n(a)} Murmeln. ${f} hat doppelt so viele Murmeln wie Anshi. Beim Spielen verlieren die beiden zusammen ${n(b)} Murmeln. Wie viele Murmeln haben sie jetzt noch zusammen?`,
+        answer: 3 * a - b, unit: "Murmeln", traps: [2 * a - b, 3 * a, a - b, 3 * a + b] };
+    },
+    () => { // · dann +
+      const k = rand(2, 6), p = rand(2, Math.min(t(), 9)), l = rand(1, 5);
+      return { text: `Anshi kauft ${n(k)} Malbücher. Jedes Malbuch kostet ${n(p)} Euro. Dazu kauft sie einen Zeichenblock für ${n(l)} Euro. Wie viel muss sie insgesamt bezahlen?`,
+        answer: k * p + l, unit: "€", traps: [k * p, k + p + l, k * p - l, k * (p + l)] };
+    },
+    () => { // : dann −
+      const kids = rand(2, 6), q = rand(3, t()), e = rand(1, q - 1);
+      return { text: `Oma hat ${n(kids * q)} Gummibärchen und verteilt sie gerecht an ${n(kids)} Enkelkinder. Anshi isst ${n(e)} von ihren Gummibärchen auf. Wie viele Gummibärchen hat Anshi noch?`,
+        answer: q - e, unit: "Stück", traps: [q, kids * q - e, q + e] };
+    },
+    () => { // · und +
+      const h = rand(2, t()), c = rand(1, Math.min(t(), 10));
+      return { text: `Auf dem Bauernhof von Anshis Opa leben ${n(h)} Hühner und ${n(c)} Kühe. Wie viele Beine haben alle Tiere zusammen?`,
+        answer: 2 * h + 4 * c, unit: "Beine", traps: [h + c, 4 * (h + c), 2 * (h + c), 4 * h + 2 * c] };
+    },
+    () => { // − dann ·
+      const k = rand(3, 8), sold = rand(1, k - 1), price = rand(2, Math.min(t(), 10));
+      return { text: `Anshi backt mit Mama ${n(k)} Waffeln für den Schulbasar. ${n(sold)} Waffeln isst die Familie gleich selbst. Die übrigen verkauft sie für je ${n(price)} Euro. Wie viel Geld nimmt sie ein?`,
+        answer: (k - sold) * price, unit: "€", traps: [k * price, k * price - sold, (k - sold) + price, (k + sold) * price] };
+    },
+  ];
+
+  function makeWordQuestion() {
+    const story = pick(STORIES)();
+    return { text: story.text, answer: story.answer, unit: story.unit, word: true, options: wordOptions(story.answer, story.traps) };
+  }
+
+  function wordOptions(answer, traps) {
+    const ok = (v) => Number.isInteger(v) && v >= 0 && v !== answer;
+    const trapPicks = shuffle([...new Set(traps.filter(ok))]).slice(0, 2);
+    const near = shuffle([answer + 1, answer - 1, answer + 2, answer - 2, answer + 10, answer - 10]
+      .filter((v) => ok(v) && !trapPicks.includes(v)));
+    const wrong = [...trapPicks, ...near].slice(0, 3);
+    for (let k = 1; wrong.length < 3; k++) if (!wrong.includes(answer + k)) wrong.push(answer + k);
+    return shuffle([...wrong, answer]);
+  }
+
   function makeQuiz() {
+    const make = isWord() ? makeWordQuestion : makeFastQuestion;
+    const length = isWord() ? settings.wcount : settings.count;
     const seen = new Set();
-    return Array.from({ length: settings.count }, () => {
-      let q = makeQuestion();
-      for (let tries = 0; seen.has(q.text) && tries < 30; tries++) q = makeQuestion();
+    return Array.from({ length }, () => {
+      let q = make();
+      for (let tries = 0; seen.has(q.text) && tries < 30; tries++) q = make();
       seen.add(q.text);
       return q;
     });
   }
 
   // ---------- home screen ----------
-  function chip(html, pressed, onClick) {
+  function toggle(className, html, pressed, onClick) {
     const btn = document.createElement("button");
-    btn.className = "chip";
+    btn.className = className;
     btn.type = "button";
     btn.innerHTML = html;
     btn.setAttribute("aria-pressed", String(pressed));
@@ -379,9 +540,15 @@
     return btn;
   }
   function renderHome() {
-    const ops = $("ops");
-    ops.replaceChildren(...Object.entries(OPS).map(([key, o]) =>
-      chip(`<span class="sym">${o.sym}</span><small>${o.label}</small>`, settings.ops.includes(key), () => {
+    $("modes").replaceChildren(...Object.entries(MODES).map(([key, m]) =>
+      toggle("mode", `<b>${m.title}</b><small>${m.caption}</small>`, settings.mode === key, () => {
+        settings.mode = key; saveSettings(); renderHome();
+      })
+    ));
+    for (const fs of document.querySelectorAll("fieldset[data-mode]")) fs.hidden = fs.dataset.mode !== settings.mode;
+
+    $("ops").replaceChildren(...Object.entries(OPS).map(([key, o]) =>
+      toggle("chip", `<span class="sym">${o.sym}</span><small>${o.label}</small>`, settings.ops.includes(key), () => {
         const on = settings.ops.includes(key);
         if (on && settings.ops.length === 1) { $("ops-hint").hidden = false; return; }
         $("ops-hint").hidden = true;
@@ -389,10 +556,13 @@
         saveSettings(); renderHome();
       })
     ));
-    const label = { table: (v) => `${v} × ${v}`, addsub: String, seconds: (v) => `${v}s`, count: String };
+    const label = {
+      table: (v) => `${v} · ${v}`, addsub: String, seconds: (v) => `${v} s`, count: String,
+      wseconds: (v) => `${v} s`, wcount: String,
+    };
     for (const key of Object.keys(OPTIONS)) {
       $(key).replaceChildren(...OPTIONS[key].map((v) =>
-        chip(label[key](v), settings[key] === v, () => { settings[key] = v; saveSettings(); renderHome(); })
+        toggle("chip", label[key](v), settings[key] === v, () => { settings[key] = v; saveSettings(); renderHome(); })
       ));
     }
   }
@@ -406,7 +576,7 @@
   }
 
   function startQuiz() {
-    quiz = { questions: makeQuiz(), index: 0, records: [] };
+    quiz = { questions: makeQuiz(), index: 0, records: [], seconds: secondsPerQuestion() };
     show("quiz");
     showQuestion();
   }
@@ -414,16 +584,20 @@
   function showQuestion() {
     const q = quiz.questions[quiz.index];
     quiz.revealed = false;
-    $("qcount").textContent = `Question ${quiz.index + 1} of ${quiz.questions.length}`;
+    $("qcount").textContent = `Aufgabe ${quiz.index + 1} von ${quiz.questions.length}`;
     $("qscore").textContent = `⭐ ${quiz.records.filter((r) => r.correct).length}`;
     const qt = $("qtext");
-    qt.textContent = `${q.text} = ?`;
+    qt.classList.toggle("word", !!q.word);
+    if (q.word) qt.innerHTML = q.text; // story text is generated here, numbers wrapped in <strong>
+    else qt.textContent = `${q.text} = ?`;
     qt.classList.remove("pop"); void qt.offsetWidth; qt.classList.add("pop");
     $("feedback").textContent = "";
     $("feedback").className = "feedback";
     $("options").replaceChildren(...q.options.map((v) => {
       const b = document.createElement("button");
-      b.className = "opt"; b.type = "button"; b.textContent = v; b.dataset.value = v;
+      b.className = "opt"; b.type = "button"; b.dataset.value = v;
+      b.textContent = v;
+      if (q.unit) { const u = document.createElement("small"); u.textContent = q.unit; b.append(u); }
       b.addEventListener("click", () => answer(v));
       return b;
     }));
@@ -434,15 +608,17 @@
   }
 
   function tick() {
-    const total = settings.seconds * 1000;
+    const total = quiz.seconds * 1000;
     const left = Math.max(0, total - (performance.now() - quiz.startedAt));
     const frac = left / total;
     const fill = $("fill");
     fill.style.transform = `scaleX(${frac})`;
     fill.style.background = frac > .5 ? "var(--good)" : frac > .25 ? "var(--marigold)" : "var(--bad)";
-    $("secs").textContent = `${Math.ceil(left / 1000)}s`;
+    $("secs").textContent = `${Math.ceil(left / 1000)} s`;
     if (left <= 0) answer(null);
   }
+
+  const withUnit = (q, v) => q.unit ? `${v} ${q.unit}` : `${v}`;
 
   function answer(chosen) {
     if (!quiz || quiz.revealed) return;
@@ -461,14 +637,16 @@
     }
     const fb = $("feedback");
     fb.className = "feedback " + (correct ? "good" : "bad");
-    fb.textContent = correct ? "Great job! 🎉" : chosen === null ? `Time's up! It's ${q.answer}` : `Oops! It's ${q.answer}`;
+    const right = withUnit(q, q.answer);
+    fb.textContent = correct ? "Super gemacht! 🎉" : chosen === null ? `Die Zeit ist um! Richtig ist ${right}` : `Hoppla! Richtig ist ${right}`;
     $("qscore").textContent = `⭐ ${quiz.records.filter((r) => r.correct).length}`;
 
+    const pause = correct ? CORRECT_PAUSE : q.word ? WORD_WRONG_PAUSE : WRONG_PAUSE;
     pauseId = setTimeout(() => {
       quiz.index++;
       if (quiz.index < quiz.questions.length) showQuestion();
       else showResult();
-    }, correct ? CORRECT_PAUSE : WRONG_PAUSE);
+    }, pause);
   }
 
   function stopQuiz() {
@@ -483,24 +661,34 @@
     const score = recs.filter((r) => r.correct).length;
     const pct = Math.round(score * 100 / Math.max(1, recs.length));
     const stars = pct >= 90 ? 3 : pct >= 70 ? 2 : pct >= 40 ? 1 : 0;
-    $("headline").textContent = ["Keep practising, Anshi! 💪", "Good try, Anshi! 👍", "Well done, Anshi! 🎉", "Superstar, Anshi! 🏆"][stars];
+    $("headline").textContent = [
+      "Weiter üben, Anshi! 💪", "Gut versucht, Anshi! 👍", "Toll gemacht, Anshi! 🎉", "Super, Anshi! Du bist ein Rechenstar! 🏆",
+    ][stars];
     $("starrow").textContent = "★".repeat(stars) + "☆".repeat(3 - stars);
     $("score").textContent = `${score} / ${recs.length}`;
     const answered = recs.filter((r) => r.chosen !== null);
     const avg = answered.length ? answered.reduce((s, r) => s + r.ms, 0) / answered.length / 1000 : 0;
-    $("stats").textContent = `${pct}% correct · ${avg.toFixed(1)}s per answer`;
+    $("stats").textContent = `${pct} % richtig · ${avg.toFixed(1).replace(".", ",")} s pro Antwort`;
 
     const mistakes = recs.filter((r) => !r.correct);
     const review = $("review");
     if (!mistakes.length) {
-      review.innerHTML = `<p class="perfect">No mistakes at all! 🌟</p>`;
+      review.innerHTML = `<p class="perfect">Kein einziger Fehler! 🌟</p>`;
     } else {
-      review.innerHTML = `<h3>Let's learn these:</h3><ul></ul>`;
+      review.innerHTML = `<h3>Diese üben wir noch:</h3><ul></ul>`;
       review.querySelector("ul").replaceChildren(...mistakes.map((r) => {
         const li = document.createElement("li");
-        li.innerHTML = `<span class="eq"></span><span class="said"></span>`;
-        li.firstChild.textContent = `${r.q.text} = ${r.q.answer}`;
-        li.lastChild.textContent = r.chosen === null ? "time up" : `you said ${r.chosen}`;
+        const said = r.chosen === null ? "Zeit um" : `du: ${withUnit(r.q, r.chosen)}`;
+        if (r.q.word) {
+          li.className = "long";
+          li.innerHTML = `<p class="story"></p><div class="line"><span class="eq"></span><span class="said"></span></div>`;
+          li.querySelector(".story").innerHTML = r.q.text;
+          li.querySelector(".eq").textContent = `Antwort: ${withUnit(r.q, r.q.answer)}`;
+        } else {
+          li.innerHTML = `<span class="eq"></span><span class="said"></span>`;
+          li.querySelector(".eq").textContent = `${r.q.text} = ${r.q.answer}`;
+        }
+        li.querySelector(".said").textContent = said;
         return li;
       }));
     }

@@ -34,10 +34,18 @@ export JAVA_HOME=~/.local/toolchains/jdk17
 - `QuizViewModel.kt` — quiz flow, countdown timer, settings persistence
 - `ui/` — Jetpack Compose screens: `HomeScreen`, `QuizScreen`, `ResultScreen`
 
-## Web version (no install, no build)
+## Web version (German, no install, no build)
 
 Play online: https://anjaneyareddykovvuri.github.io/anshi-maths/
 
-`docs/index.html` is the same quiz as a single HTML file, served by GitHub Pages. You can also
-copy it to a phone and open it in Chrome to play offline. `web/anshi-maths.html` is the
-claude.ai artifact source (the publisher adds the `<html>/<head>` wrapper).
+`docs/index.html` is a single HTML file served by GitHub Pages. It is in German and has two modes:
+
+- **Blitzrechnen** — the timed +, −, ·, : quiz (German school notation: `·` for times, `:` for divide)
+- **Textaufgaben** — short word problems that mix two or three operations, e.g.
+  "Anshi hat 5 Euro. Von Oma bekommt sie 10 Euro dazu. Dann kauft sie ein Spielzeug für 3 Euro.
+  Wie viel Geld hat Anshi jetzt?" Wrong choices are the answers you get by skipping a step or
+  using the wrong operation. Default 60 s per question (30/60/90/120), 10 questions (5/10/15).
+  The Einmaleins setting (10 · 10 or 20 · 20) also sets how big the numbers in the stories get.
+
+To play offline, copy `docs/index.html` to a phone and open it in Chrome.
+The Android app under `app/` is still the earlier English version without Textaufgaben.
