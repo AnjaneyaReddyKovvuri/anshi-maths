@@ -55,5 +55,7 @@ Play online: https://anjaneyareddykovvuri.github.io/anshi-maths/
 Every quiz has a **Pause** button that stops the timer and hides the question. The quiz also
 pauses on its own when the phone is locked or she switches apps.
 
-To play offline, copy `docs/index.html` to a phone and open it in Chrome.
+**Install on Android:** open the link in Chrome → ⋮ menu → "App installieren" (or "Zum Startbildschirm
+hinzufügen" → "Installieren"). It is a PWA (`manifest.webmanifest`, `sw.js`, icons in `docs/`), so after the
+first visit it also works offline and updates itself when online.
 The Android app under `app/` is still the earlier English version (Blitzrechnen only).
