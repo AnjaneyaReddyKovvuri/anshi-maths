@@ -47,5 +47,13 @@ Play online: https://anjaneyareddykovvuri.github.io/anshi-maths/
   using the wrong operation. Default 60 s per question (30/60/90/120), 10 questions (5/10/15).
   The Einmaleins setting (10 · 10 or 20 · 20) also sets how big the numbers in the stories get.
 
+- **Uhrzeit** — clock practice with two kinds of questions: reading an analog clock, and clock
+  word problems (German spoken time like "halb acht", start + duration, time between two times,
+  minutes and hours). Settings: accuracy (full hour, half, quarter, 5 min, 1 min) and
+  12-hour, 24-hour or both formats. With "beide" there are also 12 h ↔ 24 h conversion questions.
+
+Every quiz has a **Pause** button that stops the timer and hides the question. The quiz also
+pauses on its own when the phone is locked or she switches apps.
+
 To play offline, copy `docs/index.html` to a phone and open it in Chrome.
-The Android app under `app/` is still the earlier English version without Textaufgaben.
+The Android app under `app/` is still the earlier English version (Blitzrechnen only).

@@ -89,17 +89,19 @@
     color: var(--muted);
     margin-left: .5em;
   }
-  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .mode {
     background: var(--card);
     border: 2px solid var(--line);
     border-radius: 18px;
-    padding: 12px 10px;
-    text-align: left;
-    display: flex; flex-direction: column; gap: 2px;
+    padding: 10px 6px;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    min-width: 0;
   }
-  .mode b { font-family: var(--display); font-size: 1.25rem; line-height: 1.1; }
-  .mode small { color: var(--muted); font-weight: 700; font-size: .78rem; }
+  .mode .ico { font-size: 1.6rem; line-height: 1.1; }
+  .mode b { font-family: var(--display); font-size: 1.1rem; line-height: 1.1; hyphens: auto; overflow-wrap: anywhere; }
+  .mode small { color: var(--muted); font-weight: 700; font-size: .72rem; line-height: 1.2; }
   .mode[aria-pressed="true"] { border-color: var(--grape); background: var(--grape-soft); box-shadow: inset 0 0 0 1px var(--grape); }
   .mode[aria-pressed="true"] b { color: var(--grape); }
 
@@ -162,6 +164,12 @@
   .topbar { display: flex; align-items: center; gap: 8px; font-weight: 800; }
   .topbar .count { flex: 1; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
   .quit { background: none; color: var(--muted); font-weight: 800; padding: 8px 4px; }
+  .pausebtn { background: var(--grape-soft); color: var(--grape); font-weight: 800; border-radius: 12px; padding: 8px 12px; }
+  .qarea { display: flex; flex-direction: column; gap: 18px; }
+  .pausebox { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; }
+  .pausebox .icon { font-size: 4rem; line-height: 1; color: var(--grape); }
+  .pausebox p { font-family: var(--display); font-size: 2rem; font-weight: 800; margin: 0; color: var(--grape); }
+  .pausebox .big { align-self: stretch; }
   .stars { color: var(--ink); font-variant-numeric: tabular-nums; }
   .timer { display: flex; align-items: center; gap: 12px; }
   .track { flex: 1; height: 14px; border-radius: 7px; background: var(--grape-soft); overflow: hidden; }
@@ -194,6 +202,19 @@
     min-height: 0;
   }
   .question.word strong { color: var(--marigold); font-weight: 800; }
+  .question.clockq {
+    font-family: var(--body); font-size: 1.25rem; font-weight: 800;
+    gap: 10px; padding: 16px; line-height: 1.2;
+  }
+  .clock { width: min(15rem, 64vw); height: auto; display: block; }
+  .clock .face { fill: var(--card); stroke: var(--marigold); stroke-width: 6; }
+  .clock .tick { stroke: var(--muted); stroke-width: 1.5; }
+  .clock .tick.h { stroke: var(--ink); stroke-width: 4; }
+  .clock .num { fill: var(--ink); font-family: var(--display); font-weight: 800; font-size: 20px; text-anchor: middle; dominant-baseline: central; }
+  .clock .hh { stroke: var(--ink); stroke-width: 8; stroke-linecap: round; }
+  .clock .mh { stroke: var(--grape); stroke-width: 5; stroke-linecap: round; }
+  .clock .pin { fill: var(--marigold); }
+  .clock.mini { width: 4.5rem; flex: none; }
   .feedback {
     min-height: 2.2rem;
     text-align: center;
@@ -253,6 +274,8 @@
   .review li.long .story { font-size: .95rem; line-height: 1.45; margin: 0; }
   .review li.long .line { display: flex; align-items: baseline; gap: 12px; }
   .review li.long .eq { font-size: 1.2rem; }
+  .review li.withclock { flex-direction: row; align-items: center; }
+  .review li.withclock .line { flex: 1; flex-direction: column; align-items: flex-start; gap: 2px; }
   .perfect { text-align: center; font-family: var(--display); font-weight: 800; font-size: 1.5rem; color: var(--good); margin: 12px 0; }
   .actions { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
 
@@ -280,7 +303,16 @@
       <div class="choices" id="ops"></div>
       <p class="hint" id="ops-hint" hidden>Wähle mindestens eine Rechenart.</p>
     </fieldset>
-    <fieldset>
+    <fieldset data-mode="clock">
+      <legend>Was möchtest du üben?</legend>
+      <div class="choices" id="ctypes"></div>
+      <p class="hint" id="ctypes-hint" hidden>Wähle mindestens eine Aufgabenart.</p>
+    </fieldset>
+    <fieldset data-mode="clock">
+      <legend>Genauigkeit der Uhr (Minuten)</legend>
+      <div class="choices" id="precision"></div>
+    </fieldset>
+    <fieldset data-mode="fast word">
       <legend>Einmaleins (· und :)</legend>
       <div class="choices" id="table"></div>
     </fieldset>
@@ -304,6 +336,18 @@
       <legend>Anzahl der Aufgaben</legend>
       <div class="choices" id="wcount"></div>
     </fieldset>
+    <fieldset data-mode="clock">
+      <legend>Uhrzeit-Format</legend>
+      <div class="choices" id="hformat"></div>
+    </fieldset>
+    <fieldset data-mode="clock">
+      <legend>Sekunden pro Aufgabe</legend>
+      <div class="choices" id="cseconds"></div>
+    </fieldset>
+    <fieldset data-mode="clock">
+      <legend>Anzahl der Aufgaben</legend>
+      <div class="choices" id="ccount"></div>
+    </fieldset>
 
     <div class="actions">
       <button class="big" id="start">Los geht’s ▶</button>
@@ -314,17 +358,26 @@
   <section class="screen" id="quiz" hidden>
     <div class="topbar">
       <button class="quit" id="quit">✕ Beenden</button>
-      <span class="count" id="qcount">Aufgabe 1 von 20</span>
+      <span class="count" id="qcount">1 / 20</span>
       <span class="stars" id="qscore">⭐ 0</span>
+      <button class="pausebtn" id="pause">⏸ Pause</button>
     </div>
     <div class="timer">
       <div class="track"><div class="fill" id="fill"></div></div>
       <span class="secs" id="secs">20 s</span>
     </div>
-    <div class="question" id="qtext" aria-live="polite">7 · 8 = ?</div>
-    <p class="feedback" id="feedback" aria-live="assertive"></p>
-    <div class="options" id="options"></div>
-    <p class="keys">Tipp: Mit der Tastatur 1 2 3 4 drücken</p>
+    <div class="qarea" id="qarea">
+      <div class="question" id="qtext" aria-live="polite">7 · 8 = ?</div>
+      <p class="feedback" id="feedback" aria-live="assertive"></p>
+      <div class="options" id="options"></div>
+      <p class="keys">Tipp: Tasten 1 2 3 4 zum Antworten, P für Pause</p>
+    </div>
+    <div class="pausebox" id="paused" hidden>
+      <div class="icon" aria-hidden="true">⏸</div>
+      <p>Pause</p>
+      <span class="hint">Die Zeit ist angehalten. Mach in Ruhe weiter, wenn du bereit bist.</span>
+      <button class="big" id="resume">▶ Weiter</button>
+    </div>
   </section>
 
   <!-- ERGEBNIS -->
@@ -353,8 +406,13 @@
     div: { sym: ":", label: "Geteilt" },
   };
   const MODES = {
-    fast: { title: "⚡ Blitzrechnen", caption: "Kopfrechnen gegen die Uhr" },
-    word: { title: "📖 Textaufgaben", caption: "Rechengeschichten lesen und lösen" },
+    fast: { ico: "⚡", title: "Blitz&shy;rechnen", caption: "Kopfrechnen gegen die Uhr" },
+    word: { ico: "📖", title: "Text&shy;aufgaben", caption: "Rechen&shy;geschichten" },
+    clock: { ico: "🕐", title: "Uhrzeit", caption: "Uhr lesen und rechnen" },
+  };
+  const CLOCK_TYPES = {
+    read: { sym: "🕐", label: "Uhr lesen" },
+    text: { sym: "📝", label: "Textaufgaben" },
   };
   const OPTIONS = {
     table: [10, 20],
@@ -363,12 +421,19 @@
     count: [10, 20, 30],
     wseconds: [30, 60, 90, 120],
     wcount: [5, 10, 15],
+    precision: [60, 30, 15, 5, 1],
+    hformat: ["12", "24", "both"],
+    cseconds: [10, 20, 30, 60, 90],
+    ccount: [5, 10, 15, 20],
   };
   const DEFAULTS = {
     mode: "fast", ops: ["add", "sub", "mul", "div"], table: 10, addsub: 100,
     seconds: 20, count: 20, wseconds: 60, wcount: 10,
+    ctypes: ["read", "text"], precision: 5, hformat: "both", cseconds: 30, ccount: 10,
   };
-  const CORRECT_PAUSE = 700, WRONG_PAUSE = 1800, WORD_WRONG_PAUSE = 3000;
+  const SECONDS_KEY = { fast: "seconds", word: "wseconds", clock: "cseconds" };
+  const COUNT_KEY = { fast: "count", word: "wcount", clock: "ccount" };
+  const CORRECT_PAUSE = 700, WRONG_PAUSE = 1800, LONG_WRONG_PAUSE = 3000;
   const STORE_KEY = "anshi-maths-settings";
 
   const $ = (id) => document.getElementById(id);
@@ -379,8 +444,11 @@
   // ---------- settings ----------
   function loadSettings() {
     try {
-      const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
-      if (s && Array.isArray(s.ops) && s.ops.length) return { ...DEFAULTS, ...s };
+      const s = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORE_KEY) || "{}") };
+      if (!Array.isArray(s.ops) || !s.ops.length) s.ops = DEFAULTS.ops;
+      if (!Array.isArray(s.ctypes) || !s.ctypes.length) s.ctypes = DEFAULTS.ctypes;
+      if (!MODES[s.mode]) s.mode = DEFAULTS.mode;
+      return s;
     } catch (e) {}
     return { ...DEFAULTS };
   }
@@ -388,8 +456,20 @@
     try { localStorage.setItem(STORE_KEY, JSON.stringify(settings)); } catch (e) {}
   }
   let settings = loadSettings();
-  const isWord = () => settings.mode === "word";
-  const secondsPerQuestion = () => isWord() ? settings.wseconds : settings.seconds;
+
+  // Three wrong answers plus the right one. `traps` (the answers a child gets from a
+  // typical mistake) are preferred; `near` values fill up the rest.
+  function pickOptions(answer, traps, near, { norm = (v) => v, valid = (v) => v >= 0 } = {}) {
+    const ok = (v) => Number.isInteger(v) && valid(v) && v !== answer;
+    const t = shuffle([...new Set(traps.map(norm).filter(ok))]).slice(0, 2);
+    const rest = shuffle([...new Set(near.map(norm).filter((v) => ok(v) && !t.includes(v)))]);
+    const wrong = [...t, ...rest].slice(0, 3);
+    for (let k = 1; wrong.length < 3; k++) {
+      const v = norm(answer + k);
+      if (ok(v) && !wrong.includes(v)) wrong.push(v);
+    }
+    return shuffle([...wrong, answer]);
+  }
 
   // ---------- Blitzrechnen ----------
   function makeFastQuestion() {
@@ -400,19 +480,16 @@
     else if (op === "sub") { a = rand(2, max); b = rand(1, a); answer = a - b; }
     else if (op === "mul") { a = rand(1, t); b = rand(1, t); answer = a * b; }
     else { b = rand(1, t); answer = rand(1, t); a = b * answer; }
-    return { text: `${a} ${OPS[op].sym} ${b}`, answer, options: fastOptions(a, b, op, answer) };
+    return { kind: "fast", text: `${a} ${OPS[op].sym} ${b}`, answer, options: fastOptions(a, b, op, answer) };
   }
 
-  // Three near-miss wrong answers (the slips a child actually makes) plus the right one.
+  // Near-miss wrong answers (the slips a child actually makes).
   function fastOptions(a, b, op, answer) {
     let near;
     if (op === "mul") near = [a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b, answer + 1, answer - 1, answer + 10, answer - 10];
     else if (op === "div") near = [answer + 1, answer - 1, answer + 2, answer - 2, answer + 3];
     else near = [answer + 1, answer - 1, answer + 2, answer - 2, answer + 10, answer - 10, answer + 9, answer - 11];
-    const min = op === "div" ? 1 : 0;
-    const wrong = shuffle([...new Set(near.filter((n) => n >= min && n !== answer))]).slice(0, 3);
-    for (let k = 1; wrong.length < 3; k++) if (!wrong.includes(answer + k)) wrong.push(answer + k);
-    return shuffle([...wrong, answer]);
+    return pickOptions(answer, [], near, { valid: (v) => v >= (op === "div" ? 1 : 0) });
   }
 
   // ---------- Textaufgaben ----------
@@ -502,30 +579,171 @@
     },
   ];
 
+
   function makeWordQuestion() {
     const story = pick(STORIES)();
-    return { text: story.text, answer: story.answer, unit: story.unit, word: true, options: wordOptions(story.answer, story.traps) };
+    return {
+      kind: "word", text: story.text, answer: story.answer, unit: story.unit,
+      options: pickOptions(story.answer, story.traps, [1, -1, 2, -2, 10, -10].map((d) => story.answer + d)),
+    };
   }
 
-  function wordOptions(answer, traps) {
-    const ok = (v) => Number.isInteger(v) && v >= 0 && v !== answer;
-    const trapPicks = shuffle([...new Set(traps.filter(ok))]).slice(0, 2);
-    const near = shuffle([answer + 1, answer - 1, answer + 2, answer - 2, answer + 10, answer - 10]
-      .filter((v) => ok(v) && !trapPicks.includes(v)));
-    const wrong = [...trapPicks, ...near].slice(0, 3);
-    for (let k = 1; wrong.length < 3; k++) if (!wrong.includes(answer + k)) wrong.push(answer + k);
-    return shuffle([...wrong, answer]);
+  // ---------- Uhrzeit ----------
+  // Times are minutes after midnight. The analog clock uses 12-hour times (0..719),
+  // the clock stories use 24-hour times (0..1439), as German schoolbooks do.
+  const pad = (m) => String(m).padStart(2, "0");
+  const mod = (v, m) => ((v % m) + m) % m;
+  const fmt12 = (t) => `${Math.floor(mod(t, 720) / 60) || 12}:${pad(mod(t, 60))}`;
+  const fmt24 = (t) => `${pad(Math.floor(mod(t, 1440) / 60))}:${pad(mod(t, 60))}`;
+  const HOUR_WORDS = ["zwölf", "eins", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun", "zehn", "elf", "zwölf"];
+
+  function clockSvg(t, cls = "clock") {
+    const pt = (deg, r) => { const a = deg * Math.PI / 180; return [(100 + r * Math.sin(a)).toFixed(1), (100 - r * Math.cos(a)).toFixed(1)]; };
+    let s = `<svg class="${cls}" viewBox="0 0 200 200" role="img" aria-label="Analoge Uhr"><circle class="face" cx="100" cy="100" r="94"/>`;
+    for (let i = 0; i < 60; i++) {
+      const big = i % 5 === 0, [x1, y1] = pt(i * 6, big ? 78 : 84), [x2, y2] = pt(i * 6, 90);
+      s += `<line class="tick${big ? " h" : ""}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+    }
+    for (let i = 1; i <= 12; i++) { const [x, y] = pt(i * 30, 64); s += `<text class="num" x="${x}" y="${y}">${i}</text>`; }
+    const hand = (deg, len, c) => { const [x, y] = pt(deg, len); return `<line class="${c}" x1="100" y1="100" x2="${x}" y2="${y}"/>`; };
+    const h = mod(t, 720) / 60, m = mod(t, 60);
+    return s + hand(h * 30, 46, "hh") + hand(m * 6, 72, "mh") + `<circle class="pin" cx="100" cy="100" r="6"/></svg>`;
   }
+
+  // Part of the day, so a 12-hour time is unambiguous: 3:30 Uhr nachmittags = 15:30.
+  function dayPart(t) {
+    const h = Math.floor(mod(t, 1440) / 60);
+    return h < 5 ? "nachts" : h < 10 ? "morgens" : h < 12 ? "vormittags" : h < 14 ? "mittags"
+      : h < 18 ? "nachmittags" : h < 22 ? "abends" : "nachts";
+  }
+  // Each clock question is set in the 12- or 24-hour format (random when "beide" is chosen).
+  function clockFormat() {
+    const f = settings.hformat === "both" ? pick(["12", "24"]) : settings.hformat;
+    return f === "24"
+      ? { h24: true, fmt: fmt24, time: 1440, show: (t) => `${fmt24(t)} Uhr` }
+      : { h24: false, fmt: fmt12, time: 720, show: (t) => `${fmt12(t)} Uhr ${dayPart(t)}` };
+  }
+
+  function makeClockRead() {
+    const p = settings.precision, f = clockFormat();
+    const t12 = rand(0, 720 / p - 1) * p;
+    const h = Math.floor(t12 / 60) || 12, m = t12 % 60;
+    // In 24-hour questions the clock shows an afternoon/evening time half of the time.
+    const t = f.h24 && Math.random() < .6 ? t12 + 720 : t12;
+    const traps = [t + 60, t - 60]; // hour hand read as the next or previous number
+    if (m % 5 === 0) traps.push((t >= 720 ? 720 : 0) + (m / 5) * 60 + (h * 5) % 60); // hands swapped
+    if (f.h24) traps.push(t12 + (t >= 720 ? 0 : 720), t12 + 600); // wrong half of the day, or +10 instead of +12
+    const near = p === 60 ? [t + 120, t - 120, t + 180] : [t + p, t - p, t + 2 * p, t - 2 * p, t + 30, t + 5, t - 5];
+    return {
+      kind: "clock", clock: t12, text: `clock ${f.time} ${t}`, answer: t, unit: "Uhr", fmt: f.fmt,
+      prompt: f.h24 ? `Es ist ${dayPart(t)}. Wie spät ist es im 24-Stunden-Format?` : "Wie spät ist es?",
+      options: pickOptions(t, traps, near, { norm: (v) => mod(v, f.time), valid: () => true }),
+    };
+  }
+
+  // German spoken time, e.g. 7:30 -> "halb acht", 7:45 -> "Viertel vor acht".
+  function spokenTime(h, m) {
+    const w = HOUR_WORDS[h], next = HOUR_WORDS[h % 12 + 1];
+    return {
+      0: h === 1 ? "ein Uhr" : `${w} Uhr`, 5: `fünf nach ${w}`, 10: `zehn nach ${w}`, 15: `Viertel nach ${w}`,
+      20: `zehn vor halb ${next}`, 25: `fünf vor halb ${next}`, 30: `halb ${next}`, 35: `fünf nach halb ${next}`,
+      40: `zehn nach halb ${next}`, 45: `Viertel vor ${next}`, 50: `zehn vor ${next}`, 55: `fünf vor ${next}`,
+    }[m];
+  }
+  const duration = (d) => d < 60 ? `${d} Minuten` : d === 60 ? "eine Stunde" : `eine Stunde und ${d - 60} Minuten`;
+  const clockStep = () => settings.precision >= 15 ? 15 : 5;
+  const randTime = (fromH, toH) => rand(fromH * 60 / clockStep(), toH * 60 / clockStep()) * clockStep();
+  const randDuration = () => pick([15, 20, 25, 30, 35, 40, 45, 50, 60, 75, 90].filter((d) => d % clockStep() === 0));
+  // Classic slip: adding minutes without carrying into the hour (14:50 + 20 min -> 14:10).
+  const noCarry = (start, d) => Math.floor(start / 60) * 60 + mod(start + d, 60);
+  const hhmm = (t) => Math.floor(t / 60) * 100 + t % 60;
+  const nearTimes = (t) => [t + 5, t - 5, t + 10, t - 10, t + 15, t - 15];
+  const spokenMinutes = () => settings.precision >= 30 ? [0, 30] : settings.precision === 15 ? [0, 15, 30, 45]
+    : [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+  const ACTIVITIES = [
+    ["Der Schwimmkurs", "er"], ["Das Fußballtraining", "es"], ["Die Musikstunde", "sie"],
+    ["Der Malkurs", "er"], ["Die Geburtstagsfeier", "sie"], ["Der Ballettunterricht", "er"],
+  ];
+  const q = (x) => `<strong>${x}</strong>`;
+
+  // Stories get a format `f`; times in the text and in the answers follow it.
+  const CLOCK_STORIES = [
+    (f) => { // spoken time -> digital
+      const h = rand(1, 12), m = pick(spokenMinutes()), t12 = mod(h * 60 + m, 720);
+      const t = f.h24 ? t12 + (h >= 5 && h <= 9 ? 720 : pick([0, 720])) : t12 + pick([0, 720]);
+      const spoken = `„${spokenTime(h, m)}“ ${dayPart(t)}`;
+      const ask = f.h24 ? "Welche Uhrzeit zeigt die 24-Stunden-Digitaluhr?" : "Welche Uhrzeit ist das?";
+      return { text: `Es ist ${q(spoken)}. ${ask}`, answer: t, unit: "Uhr", ...f,
+        traps: [t + 60, t - 60, t + 30, t - 30, ...(f.h24 ? [t12 + (t >= 720 ? 0 : 720)] : [])], near: nearTimes(t) };
+    },
+    (f) => { // start + duration -> end
+      const [what, pron] = pick(ACTIVITIES), s = randTime(8, 17), d = randDuration(), e = s + d;
+      return { text: `${what} beginnt um ${q(f.show(s))} und dauert ${q(duration(d))}. Um wie viel Uhr ist ${pron} zu Ende?`,
+        answer: e, unit: "Uhr", ...f, traps: [noCarry(s, d), e + 60, e - 60, s - d], near: nearTimes(e) };
+    },
+    (f) => { // end - duration -> start
+      const d = randDuration(), e = randTime(10, 20), s = e - d;
+      return { text: `Anshis Lieblingsfilm ist um ${q(f.show(e))} zu Ende. Er hat ${q(duration(d))} gedauert. Um wie viel Uhr hat der Film angefangen?`,
+        answer: s, unit: "Uhr", ...f, traps: [e + d, s + 60, s - 60, noCarry(e, -d)], near: nearTimes(s) };
+    },
+    (f) => { // elapsed minutes between two times
+      const s = randTime(13, 17), d = pick([10, 15, 20, 25, 30, 35, 40, 45, 50, 55].filter((x) => x % clockStep() === 0)), e = s + d;
+      return { text: `Anshi fängt um ${q(f.show(s))} mit den Hausaufgaben an und ist um ${q(f.show(e))} fertig. Wie viele Minuten hat sie gebraucht?`,
+        answer: d, unit: "Minuten", traps: [hhmm(e) - hhmm(s), d + 60, 60 - d], near: [d + 5, d - 5, d + 10, d - 10] };
+    },
+    () => { // hours and minutes -> minutes
+      const h = rand(1, 3), m = rand(1, 11) * 5, total = h * 60 + m;
+      return { text: `Wie viele Minuten sind ${q(h === 1 ? "eine Stunde" : `${h} Stunden`)} und ${q(`${m} Minuten`)}?`,
+        answer: total, unit: "Minuten", traps: [h * 100 + m, h + m, h * 60, h * 10 + m], near: [total + 5, total - 5, total + 10, total - 10] };
+    },
+    () => { // halbe Stunde, Viertelstunde, ...
+      const parts = shuffle([["eine Stunde", 60], ["eine halbe Stunde", 30], ["eine Viertelstunde", 15], ["eine Dreiviertelstunde", 45]]).slice(0, 2);
+      const total = parts[0][1] + parts[1][1];
+      return { text: `Wie viele Minuten sind ${q(parts[0][0])} und ${q(parts[1][0])} zusammen?`,
+        answer: total, unit: "Minuten", traps: [total + 15, total - 15, total + 30, total - 30], near: [total + 5, total - 5] };
+    },
+    () => { // sleeping hours across midnight
+      const bed = pick([19, 20, 21]), wake = pick([6, 7]), hours = 24 - bed + wake;
+      return { text: `Anshi geht um ${q(`${bed} Uhr`)} ins Bett und wacht morgens um ${q(`${wake} Uhr`)} auf. Wie viele Stunden schläft sie?`,
+        answer: hours, unit: "Stunden", traps: [bed - wake, hours + 1, hours - 1, 12 - wake], near: [hours + 2, hours - 2] };
+    },
+  ];
+  // Converting between the two formats; only asked when "beide" is chosen.
+  const CONVERSION_STORIES = [
+    () => { // 12 h -> 24 h
+      const t12 = rand(1, 10) * 60 + pick(spokenMinutes()), t = t12 + 720;
+      return { text: `Es ist ${q(`${fmt12(t12)} Uhr ${dayPart(t)}`)}. Wie zeigt eine 24-Stunden-Digitaluhr diese Uhrzeit an?`,
+        answer: t, unit: "Uhr", fmt: fmt24, time: 1440, traps: [t12, t12 + 600, t + 60, t - 60], near: nearTimes(t) };
+    },
+    () => { // 24 h -> 12 h
+      const t = (rand(13, 22) * 60) + pick(spokenMinutes()), t12 = t - 720;
+      return { text: `Die Digitaluhr zeigt ${q(`${fmt24(t)} Uhr`)}. Wie viel Uhr ist das auf einer Uhr mit Zeigern?`,
+        answer: t12, unit: "Uhr", fmt: fmt12, time: 720, traps: [t - 600, t - 660, t12 + 60, t12 - 60], near: nearTimes(t12) };
+    },
+  ];
+
+  function makeClockQuestion() {
+    if (pick(settings.ctypes) === "read") return makeClockRead();
+    const pool = settings.hformat === "both" ? [...CLOCK_STORIES, ...CONVERSION_STORIES] : CLOCK_STORIES;
+    const st = pick(pool)(clockFormat());
+    const answer = st.time ? mod(st.answer, st.time) : st.answer;
+    const opts = st.time ? { norm: (v) => mod(v, st.time), valid: () => true } : { valid: (v) => v > 0 };
+    return {
+      kind: "word", text: st.text, answer, unit: st.unit, fmt: st.fmt,
+      options: pickOptions(answer, st.traps, st.near, opts),
+    };
+  }
+
+  const MAKERS = { fast: makeFastQuestion, word: makeWordQuestion, clock: makeClockQuestion };
 
   function makeQuiz() {
-    const make = isWord() ? makeWordQuestion : makeFastQuestion;
-    const length = isWord() ? settings.wcount : settings.count;
+    const make = MAKERS[settings.mode];
     const seen = new Set();
-    return Array.from({ length }, () => {
-      let q = make();
-      for (let tries = 0; seen.has(q.text) && tries < 30; tries++) q = make();
-      seen.add(q.text);
-      return q;
+    return Array.from({ length: settings[COUNT_KEY[settings.mode]] }, () => {
+      let question = make();
+      for (let tries = 0; seen.has(question.text) && tries < 30; tries++) question = make();
+      seen.add(question.text);
+      return question;
     });
   }
 
@@ -539,26 +757,33 @@
     btn.addEventListener("click", onClick);
     return btn;
   }
-  function renderHome() {
-    $("modes").replaceChildren(...Object.entries(MODES).map(([key, m]) =>
-      toggle("mode", `<b>${m.title}</b><small>${m.caption}</small>`, settings.mode === key, () => {
-        settings.mode = key; saveSettings(); renderHome();
-      })
-    ));
-    for (const fs of document.querySelectorAll("fieldset[data-mode]")) fs.hidden = fs.dataset.mode !== settings.mode;
-
-    $("ops").replaceChildren(...Object.entries(OPS).map(([key, o]) =>
-      toggle("chip", `<span class="sym">${o.sym}</span><small>${o.label}</small>`, settings.ops.includes(key), () => {
-        const on = settings.ops.includes(key);
-        if (on && settings.ops.length === 1) { $("ops-hint").hidden = false; return; }
-        $("ops-hint").hidden = true;
-        settings.ops = on ? settings.ops.filter((k) => k !== key) : [...settings.ops, key];
+  // A group of toggles where at least one must stay on.
+  function multiToggle(containerId, hintId, items, key) {
+    $(containerId).replaceChildren(...Object.entries(items).map(([k, o]) =>
+      toggle("chip", `<span class="sym">${o.sym}</span><small>${o.label}</small>`, settings[key].includes(k), () => {
+        const on = settings[key].includes(k);
+        if (on && settings[key].length === 1) { $(hintId).hidden = false; return; }
+        $(hintId).hidden = true;
+        settings[key] = on ? settings[key].filter((x) => x !== k) : [...settings[key], k];
         saveSettings(); renderHome();
       })
     ));
+  }
+  function renderHome() {
+    $("modes").replaceChildren(...Object.entries(MODES).map(([key, m]) =>
+      toggle("mode", `<span class="ico" aria-hidden="true">${m.ico}</span><b>${m.title}</b><small>${m.caption}</small>`, settings.mode === key, () => {
+        settings.mode = key; saveSettings(); renderHome();
+      })
+    ));
+    for (const fs of document.querySelectorAll("fieldset[data-mode]")) fs.hidden = !fs.dataset.mode.split(" ").includes(settings.mode);
+    multiToggle("ops", "ops-hint", OPS, "ops");
+    multiToggle("ctypes", "ctypes-hint", CLOCK_TYPES, "ctypes");
+    const secs = (v) => `${v} s`;
     const label = {
-      table: (v) => `${v} · ${v}`, addsub: String, seconds: (v) => `${v} s`, count: String,
-      wseconds: (v) => `${v} s`, wcount: String,
+      table: (v) => `${v} · ${v}`, addsub: String, seconds: secs, count: String, wseconds: secs, wcount: String,
+      precision: (v) => ({ 60: "60<small>volle Std.</small>", 30: "30<small>halbe Std.</small>", 15: "15<small>Viertel</small>", 5: "5<small>Min.</small>", 1: "1<small>Min.</small>" })[v],
+      hformat: (v) => ({ 12: "12 Std.<small>3:15</small>", 24: "24 Std.<small>15:15</small>", both: "beide<small>gemischt</small>" })[v],
+      cseconds: secs, ccount: String,
     };
     for (const key of Object.keys(OPTIONS)) {
       $(key).replaceChildren(...OPTIONS[key].map((v) =>
@@ -575,33 +800,43 @@
     window.scrollTo(0, 0);
   }
 
+  const display = (question, v) => question.fmt ? question.fmt(v) : String(v);
+  const withUnit = (question, v) => question.unit ? `${display(question, v)} ${question.unit}` : display(question, v);
+
   function startQuiz() {
-    quiz = { questions: makeQuiz(), index: 0, records: [], seconds: secondsPerQuestion() };
+    quiz = { questions: makeQuiz(), index: 0, records: [], seconds: settings[SECONDS_KEY[settings.mode]], paused: false };
+    setPausedView(false);
     show("quiz");
     showQuestion();
   }
 
   function showQuestion() {
-    const q = quiz.questions[quiz.index];
+    const question = quiz.questions[quiz.index];
     quiz.revealed = false;
-    $("qcount").textContent = `Aufgabe ${quiz.index + 1} von ${quiz.questions.length}`;
+    $("qcount").textContent = `${quiz.index + 1} / ${quiz.questions.length}`;
     $("qscore").textContent = `⭐ ${quiz.records.filter((r) => r.correct).length}`;
     const qt = $("qtext");
-    qt.classList.toggle("word", !!q.word);
-    if (q.word) qt.innerHTML = q.text; // story text is generated here, numbers wrapped in <strong>
-    else qt.textContent = `${q.text} = ?`;
-    qt.classList.remove("pop"); void qt.offsetWidth; qt.classList.add("pop");
+    qt.className = "question" + (question.kind === "word" ? " word" : question.kind === "clock" ? " clockq" : "");
+    // Story and clock markup is generated by this script from numbers and fixed word lists.
+    if (question.kind === "word") qt.innerHTML = question.text;
+    else if (question.kind === "clock") qt.innerHTML = `${clockSvg(question.clock)}<div>${question.prompt}</div>`;
+    else qt.textContent = `${question.text} = ?`;
+    void qt.offsetWidth; qt.classList.add("pop");
     $("feedback").textContent = "";
     $("feedback").className = "feedback";
-    $("options").replaceChildren(...q.options.map((v) => {
+    $("options").replaceChildren(...question.options.map((v) => {
       const b = document.createElement("button");
       b.className = "opt"; b.type = "button"; b.dataset.value = v;
-      b.textContent = v;
-      if (q.unit) { const u = document.createElement("small"); u.textContent = q.unit; b.append(u); }
+      b.textContent = display(question, v);
+      if (question.unit) { const u = document.createElement("small"); u.textContent = question.unit; b.append(u); }
       b.addEventListener("click", () => answer(v));
       return b;
     }));
     quiz.startedAt = performance.now();
+    startTimer();
+  }
+
+  function startTimer() {
     tick();
     clearInterval(timerId);
     timerId = setInterval(tick, 100);
@@ -618,35 +853,58 @@
     if (left <= 0) answer(null);
   }
 
-  const withUnit = (q, v) => q.unit ? `${v} ${q.unit}` : `${v}`;
-
   function answer(chosen) {
-    if (!quiz || quiz.revealed) return;
+    if (!quiz || quiz.revealed || quiz.paused) return;
     quiz.revealed = true;
     clearInterval(timerId);
-    const q = quiz.questions[quiz.index];
-    const correct = chosen === q.answer;
-    quiz.records.push({ q, chosen, correct, ms: performance.now() - quiz.startedAt });
+    const question = quiz.questions[quiz.index];
+    const correct = chosen === question.answer;
+    quiz.records.push({ q: question, chosen, correct, ms: performance.now() - quiz.startedAt });
 
     for (const b of $("options").children) {
       const v = Number(b.dataset.value);
       b.disabled = true;
-      if (v === q.answer) b.classList.add("right");
+      if (v === question.answer) b.classList.add("right");
       else if (v === chosen) b.classList.add("wrong");
       else b.classList.add("dim");
     }
     const fb = $("feedback");
     fb.className = "feedback " + (correct ? "good" : "bad");
-    const right = withUnit(q, q.answer);
+    const right = withUnit(question, question.answer);
     fb.textContent = correct ? "Super gemacht! 🎉" : chosen === null ? `Die Zeit ist um! Richtig ist ${right}` : `Hoppla! Richtig ist ${right}`;
     $("qscore").textContent = `⭐ ${quiz.records.filter((r) => r.correct).length}`;
 
-    const pause = correct ? CORRECT_PAUSE : q.word ? WORD_WRONG_PAUSE : WRONG_PAUSE;
-    pauseId = setTimeout(() => {
-      quiz.index++;
-      if (quiz.index < quiz.questions.length) showQuestion();
-      else showResult();
-    }, pause);
+    const wait = correct ? CORRECT_PAUSE : question.kind === "fast" ? WRONG_PAUSE : LONG_WRONG_PAUSE;
+    pauseId = setTimeout(nextQuestion, wait);
+  }
+
+  function nextQuestion() {
+    quiz.index++;
+    if (quiz.index < quiz.questions.length) showQuestion();
+    else showResult();
+  }
+
+  // Pause hides the question so the clock can't run while she thinks it over.
+  function setPausedView(paused) {
+    $("qarea").hidden = paused;
+    $("paused").hidden = !paused;
+    $("pause").hidden = paused;
+    $("fill").parentElement.style.opacity = paused ? ".4" : "";
+  }
+  function pauseQuiz() {
+    if (!quiz || quiz.paused || $("quiz").hidden) return;
+    quiz.paused = true;
+    if (quiz.revealed) clearTimeout(pauseId);
+    else { clearInterval(timerId); quiz.elapsed = performance.now() - quiz.startedAt; }
+    setPausedView(true);
+    $("resume").focus();
+  }
+  function resumeQuiz() {
+    if (!quiz || !quiz.paused) return;
+    quiz.paused = false;
+    setPausedView(false);
+    if (quiz.revealed) nextQuestion();
+    else { quiz.startedAt = performance.now() - quiz.elapsed; startTimer(); }
   }
 
   function stopQuiz() {
@@ -679,14 +937,14 @@
       review.querySelector("ul").replaceChildren(...mistakes.map((r) => {
         const li = document.createElement("li");
         const said = r.chosen === null ? "Zeit um" : `du: ${withUnit(r.q, r.chosen)}`;
-        if (r.q.word) {
-          li.className = "long";
-          li.innerHTML = `<p class="story"></p><div class="line"><span class="eq"></span><span class="said"></span></div>`;
-          li.querySelector(".story").innerHTML = r.q.text;
-          li.querySelector(".eq").textContent = `Antwort: ${withUnit(r.q, r.q.answer)}`;
-        } else {
+        if (r.q.kind === "fast") {
           li.innerHTML = `<span class="eq"></span><span class="said"></span>`;
           li.querySelector(".eq").textContent = `${r.q.text} = ${r.q.answer}`;
+        } else {
+          li.className = r.q.kind === "clock" ? "long withclock" : "long";
+          li.innerHTML = `<div class="story"></div><div class="line"><span class="eq"></span><span class="said"></span></div>`;
+          li.querySelector(".story").innerHTML = r.q.kind === "clock" ? clockSvg(r.q.clock, "clock mini") : r.q.text;
+          li.querySelector(".eq").textContent = `Antwort: ${withUnit(r.q, r.q.answer)}`;
         }
         li.querySelector(".said").textContent = said;
         return li;
@@ -700,8 +958,14 @@
   $("again").addEventListener("click", startQuiz);
   $("quit").addEventListener("click", stopQuiz);
   $("home-btn").addEventListener("click", stopQuiz);
+  $("pause").addEventListener("click", pauseQuiz);
+  $("resume").addEventListener("click", resumeQuiz);
+  // Switching apps or locking the phone pauses automatically.
+  document.addEventListener("visibilitychange", () => { if (document.hidden) pauseQuiz(); });
   document.addEventListener("keydown", (e) => {
-    if ($("quiz").hidden || !quiz || quiz.revealed) return;
+    if ($("quiz").hidden || !quiz) return;
+    if (e.key === "p" || e.key === "P") { quiz.paused ? resumeQuiz() : pauseQuiz(); return; }
+    if (quiz.revealed || quiz.paused) return;
     const i = ["1", "2", "3", "4"].indexOf(e.key);
     if (i >= 0) answer(quiz.questions[quiz.index].options[i]);
   });
