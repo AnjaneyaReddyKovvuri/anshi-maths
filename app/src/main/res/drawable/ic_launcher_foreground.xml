@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Plus, minus, times and divide symbols in a 2x2 grid inside the adaptive-icon safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- plus -->
+    <path android:fillColor="#FFD54F" android:pathData="M33,40h18v4h-18z M40,33h4v18h-4z" />
+    <!-- minus -->
+    <path android:fillColor="#FFFFFF" android:pathData="M57,40h18v4h-18z" />
+    <!-- times -->
+    <group android:pivotX="42" android:pivotY="66" android:rotation="45">
+        <path android:fillColor="#FFFFFF" android:pathData="M33,64h18v4h-18z M40,57h4v18h-4z" />
+    </group>
+    <!-- divide -->
+    <path android:fillColor="#FFD54F"
+        android:pathData="M57,64h18v4h-18z M63.5,58.5a2.5,2.5 0,1 0,5 0a2.5,2.5 0,1 0,-5 0z M63.5,73.5a2.5,2.5 0,1 0,5 0a2.5,2.5 0,1 0,-5 0z" />
+</vector>

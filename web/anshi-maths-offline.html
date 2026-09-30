@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5b3cc4">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+<title>Anshi Maths</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+  /* Layout: one centred phone-width column; each screen (home / quiz / result) fills it in turn. */
+  :root {
+    --bg: #f5f1ff;
+    --card: #ffffff;
+    --ink: #221a3d;
+    --muted: #6d6488;
+    --line: #dcd3f5;
+    --grape: #5b3cc4;
+    --grape-soft: #ebe4ff;
+    --on-grape: #ffffff;
+    --marigold: #ffb020;
+    --on-marigold: #3a2600;
+    --good: #22994a;
+    --bad: #de3b36;
+    --shadow: 0 4px 0 rgba(60, 35, 140, .14);
+    --display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+    --body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17122b; --card: #231c3f; --ink: #f1edff; --muted: #a9a0c8; --line: #3a3163;
+      --grape: #9b83ff; --grape-soft: #2e2556; --on-grape: #140d2e;
+      --marigold: #ffbf40; --on-marigold: #2b1c00; --good: #3ccf6e; --bad: #ff6b63;
+      --shadow: 0 4px 0 rgba(0, 0, 0, .35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17122b; --card: #231c3f; --ink: #f1edff; --muted: #a9a0c8; --line: #3a3163;
+    --grape: #9b83ff; --grape-soft: #2e2556; --on-grape: #140d2e;
+    --marigold: #ffbf40; --on-marigold: #2b1c00; --good: #3ccf6e; --bad: #ff6b63;
+    --shadow: 0 4px 0 rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app {
+    max-width: 30rem;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-block: 20px 28px;
+    min-height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+  .screen { display: flex; flex-direction: column; gap: 18px; flex: 1; }
+  button { font: inherit; color: inherit; cursor: pointer; border: 0; }
+  button:focus-visible { outline: 3px solid var(--marigold); outline-offset: 2px; }
+
+  /* ---------- Home ---------- */
+  .brand { text-align: center; }
+  .brand h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 2.9rem;
+    line-height: 1;
+    margin: 6px 0 0;
+    color: var(--grape);
+    letter-spacing: -.01em;
+  }
+  .brand h1 span { color: var(--marigold); }
+  .brand p { margin: 6px 0 0; color: var(--muted); font-weight: 700; }
+  .symbols {
+    font-family: var(--display);
+    font-size: 1.5rem;
+    letter-spacing: .5em;
+    color: var(--muted);
+    margin-left: .5em;
+  }
+  fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  legend {
+    font-weight: 800;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    padding: 0;
+    margin-bottom: 8px;
+  }
+  .choices { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+  .chip {
+    background: var(--card);
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    min-height: 3.1rem;
+    padding: 4px;
+    font-weight: 800;
+    font-size: 1.15rem;
+    font-variant-numeric: tabular-nums;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: transform .08s;
+  }
+  .chip small { font-size: .7rem; font-weight: 700; color: var(--muted); }
+  .chip .sym { font-family: var(--display); font-size: 1.7rem; line-height: 1; }
+  .chip[aria-pressed="true"] {
+    background: var(--grape);
+    border-color: var(--grape);
+    color: var(--on-grape);
+  }
+  .chip[aria-pressed="true"] small { color: var(--on-grape); opacity: .85; }
+  .chip:active { transform: scale(.96); }
+  .hint { font-size: .8rem; color: var(--muted); margin: 0; }
+
+  .big {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.8rem;
+    min-height: 4.2rem;
+    border-radius: 20px;
+    background: var(--marigold);
+    color: var(--on-marigold);
+    box-shadow: var(--shadow);
+    transition: transform .08s;
+  }
+  .big:active { transform: translateY(3px); box-shadow: none; }
+  .ghost {
+    font-weight: 800;
+    min-height: 3.2rem;
+    border-radius: 18px;
+    background: transparent;
+    border: 2px solid var(--line);
+    color: var(--grape);
+  }
+
+  /* ---------- Quiz ---------- */
+  .topbar { display: flex; align-items: center; gap: 8px; font-weight: 800; }
+  .topbar .count { flex: 1; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .quit { background: none; color: var(--muted); font-weight: 800; padding: 8px 4px; }
+  .stars { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .timer { display: flex; align-items: center; gap: 12px; }
+  .track { flex: 1; height: 14px; border-radius: 7px; background: var(--grape-soft); overflow: hidden; }
+  .fill { height: 100%; width: 100%; border-radius: 7px; background: var(--good); transform-origin: left; }
+  .secs { font-weight: 800; font-size: 1.15rem; min-width: 2.6ch; text-align: right; font-variant-numeric: tabular-nums; }
+  .question {
+    background: var(--grape);
+    color: var(--on-grape);
+    border-radius: 28px;
+    min-height: 10rem;
+    display: grid;
+    place-items: center;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(2.6rem, 13vw, 3.8rem);
+    font-variant-numeric: tabular-nums;
+    box-shadow: var(--shadow);
+    padding: 8px;
+    text-align: center;
+    line-height: 1.1;
+  }
+  .feedback {
+    min-height: 2.2rem;
+    text-align: center;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.5rem;
+    margin: 0;
+  }
+  .feedback.good { color: var(--good); }
+  .feedback.bad { color: var(--bad); }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .opt {
+    background: var(--card);
+    color: var(--grape);
+    border: 2px solid var(--line);
+    border-radius: 22px;
+    min-height: 6rem;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 2.4rem;
+    font-variant-numeric: tabular-nums;
+    box-shadow: var(--shadow);
+    transition: transform .08s, background-color .15s, opacity .15s;
+  }
+  .opt:active { transform: translateY(3px); box-shadow: none; }
+  .opt:disabled { cursor: default; }
+  .opt.right { background: var(--good); border-color: var(--good); color: #fff; }
+  .opt.wrong { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .opt.dim { opacity: .35; }
+  .keys { text-align: center; font-size: .8rem; color: var(--muted); margin: 0; }
+
+  /* ---------- Result ---------- */
+  .result-head { text-align: center; display: flex; flex-direction: column; gap: 4px; }
+  .result-head h2 {
+    font-family: var(--display); font-weight: 800; font-size: 1.9rem;
+    color: var(--grape); margin: 0; text-wrap: balance; line-height: 1.15;
+  }
+  .starrow { font-size: 2.6rem; letter-spacing: .1em; color: var(--marigold); line-height: 1.2; }
+  .score { font-family: var(--display); font-weight: 800; font-size: 3.6rem; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stats { color: var(--muted); font-weight: 700; }
+  .review h3 { font-size: 1rem; margin: 0 0 8px; }
+  .review ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .review li {
+    background: var(--card);
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .review .eq { flex: 1; font-family: var(--display); font-weight: 800; font-size: 1.4rem; color: var(--good); font-variant-numeric: tabular-nums; }
+  .review .said { color: var(--bad); font-weight: 700; font-size: .9rem; }
+  .perfect { text-align: center; font-family: var(--display); font-weight: 800; font-size: 1.5rem; color: var(--good); margin: 12px 0; }
+  .actions { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+  @keyframes pop { 0% { transform: scale(.9); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
+  .pop { animation: pop .25s ease-out; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- HOME -->
+  <section class="screen" id="home">
+    <header class="brand">
+      <div class="symbols" aria-hidden="true">+ − × ÷</div>
+      <h1>Anshi <span>Maths</span></h1>
+      <p>Fast calculation practice</p>
+    </header>
+
+    <fieldset>
+      <legend>What shall we practise?</legend>
+      <div class="choices" id="ops"></div>
+      <p class="hint" id="ops-hint" hidden>Pick at least one.</p>
+    </fieldset>
+    <fieldset>
+      <legend>Times tables (× and ÷)</legend>
+      <div class="choices" id="table"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Add &amp; subtract up to</legend>
+      <div class="choices" id="addsub"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Seconds for each question</legend>
+      <div class="choices" id="seconds"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Number of questions</legend>
+      <div class="choices" id="count"></div>
+    </fieldset>
+
+    <div class="actions">
+      <button class="big" id="start">Start ▶</button>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="screen" id="quiz" hidden>
+    <div class="topbar">
+      <button class="quit" id="quit">✕ Quit</button>
+      <span class="count" id="qcount">Question 1 of 20</span>
+      <span class="stars" id="qscore">⭐ 0</span>
+    </div>
+    <div class="timer">
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <span class="secs" id="secs">20s</span>
+    </div>
+    <div class="question" id="qtext" aria-live="polite">7 × 8 = ?</div>
+    <p class="feedback" id="feedback" aria-live="assertive"></p>
+    <div class="options" id="options"></div>
+    <p class="keys">Tip: on a keyboard, press 1 2 3 4</p>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="result" hidden>
+    <div class="result-head">
+      <h2 id="headline">Well done, Anshi!</h2>
+      <div class="starrow" id="starrow" aria-hidden="true">★★☆</div>
+      <div class="score" id="score">17 / 20</div>
+      <div class="stats" id="stats">85% correct · 4.2s per answer</div>
+    </div>
+    <div class="review" id="review"></div>
+    <div class="actions">
+      <button class="big" id="again">Play again</button>
+      <button class="ghost" id="home-btn">Change settings</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const OPS = {
+    add: { sym: "+", label: "Add" },
+    sub: { sym: "−", label: "Subtract" },
+    mul: { sym: "×", label: "Multiply" },
+    div: { sym: "÷", label: "Divide" },
+  };
+  const OPTIONS = {
+    table: [10, 20],
+    addsub: [20, 100, 1000],
+    seconds: [5, 10, 20, 30, 60],
+    count: [10, 20, 30],
+  };
+  const DEFAULTS = { ops: ["add", "sub", "mul", "div"], table: 10, addsub: 100, seconds: 20, count: 20 };
+  const CORRECT_PAUSE = 700, WRONG_PAUSE = 1800;
+  const STORE_KEY = "anshi-maths-settings";
+
+  const $ = (id) => document.getElementById(id);
+  const rand = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1)); // inclusive
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rand(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  // ---------- settings ----------
+  function loadSettings() {
+    try {
+      const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+      if (s && Array.isArray(s.ops) && s.ops.length) return { ...DEFAULTS, ...s };
+    } catch (e) {}
+    return { ...DEFAULTS };
+  }
+  function saveSettings() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(settings)); } catch (e) {}
+  }
+  let settings = loadSettings();
+
+  // ---------- questions ----------
+  function makeQuestion() {
+    const op = settings.ops[rand(0, settings.ops.length - 1)];
+    const max = settings.addsub, t = settings.table;
+    let a, b, answer;
+    if (op === "add") { a = rand(1, max - 1); b = rand(1, max - a); answer = a + b; }
+    else if (op === "sub") { a = rand(2, max); b = rand(1, a); answer = a - b; }
+    else if (op === "mul") { a = rand(1, t); b = rand(1, t); answer = a * b; }
+    else { b = rand(1, t); answer = rand(1, t); a = b * answer; }
+    return { a, b, op, answer, text: `${a} ${OPS[op].sym} ${b}`, options: makeOptions(a, b, op, answer) };
+  }
+
+  // Three near-miss wrong answers (the slips a child actually makes) plus the right one.
+  function makeOptions(a, b, op, answer) {
+    let near;
+    if (op === "mul") near = [a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b, answer + 1, answer - 1, answer + 10, answer - 10];
+    else if (op === "div") near = [answer + 1, answer - 1, answer + 2, answer - 2, answer + 3];
+    else near = [answer + 1, answer - 1, answer + 2, answer - 2, answer + 10, answer - 10, answer + 9, answer - 11];
+    const min = op === "div" ? 1 : 0;
+    const wrong = shuffle([...new Set(near.filter((n) => n >= min && n !== answer))]).slice(0, 3);
+    for (let k = 1; wrong.length < 3; k++) if (!wrong.includes(answer + k)) wrong.push(answer + k);
+    return shuffle([...wrong, answer]);
+  }
+
+  function makeQuiz() {
+    const seen = new Set();
+    return Array.from({ length: settings.count }, () => {
+      let q = makeQuestion();
+      for (let tries = 0; seen.has(q.text) && tries < 30; tries++) q = makeQuestion();
+      seen.add(q.text);
+      return q;
+    });
+  }
+
+  // ---------- home screen ----------
+  function chip(html, pressed, onClick) {
+    const btn = document.createElement("button");
+    btn.className = "chip";
+    btn.type = "button";
+    btn.innerHTML = html;
+    btn.setAttribute("aria-pressed", String(pressed));
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+  function renderHome() {
+    const ops = $("ops");
+    ops.replaceChildren(...Object.entries(OPS).map(([key, o]) =>
+      chip(`<span class="sym">${o.sym}</span><small>${o.label}</small>`, settings.ops.includes(key), () => {
+        const on = settings.ops.includes(key);
+        if (on && settings.ops.length === 1) { $("ops-hint").hidden = false; return; }
+        $("ops-hint").hidden = true;
+        settings.ops = on ? settings.ops.filter((k) => k !== key) : [...settings.ops, key];
+        saveSettings(); renderHome();
+      })
+    ));
+    const label = { table: (v) => `${v} × ${v}`, addsub: String, seconds: (v) => `${v}s`, count: String };
+    for (const key of Object.keys(OPTIONS)) {
+      $(key).replaceChildren(...OPTIONS[key].map((v) =>
+        chip(label[key](v), settings[key] === v, () => { settings[key] = v; saveSettings(); renderHome(); })
+      ));
+    }
+  }
+
+  // ---------- quiz ----------
+  let quiz = null, timerId = null, pauseId = null;
+
+  function show(id) {
+    for (const s of ["home", "quiz", "result"]) $(s).hidden = s !== id;
+    window.scrollTo(0, 0);
+  }
+
+  function startQuiz() {
+    quiz = { questions: makeQuiz(), index: 0, records: [] };
+    show("quiz");
+    showQuestion();
+  }
+
+  function showQuestion() {
+    const q = quiz.questions[quiz.index];
+    quiz.revealed = false;
+    $("qcount").textContent = `Question ${quiz.index + 1} of ${quiz.questions.length}`;
+    $("qscore").textContent = `⭐ ${quiz.records.filter((r) => r.correct).length}`;
+    const qt = $("qtext");
+    qt.textContent = `${q.text} = ?`;
+    qt.classList.remove("pop"); void qt.offsetWidth; qt.classList.add("pop");
+    $("feedback").textContent = "";
+    $("feedback").className = "feedback";
+    $("options").replaceChildren(...q.options.map((v) => {
+      const b = document.createElement("button");
+      b.className = "opt"; b.type = "button"; b.textContent = v; b.dataset.value = v;
+      b.addEventListener("click", () => answer(v));
+      return b;
+    }));
+    quiz.startedAt = performance.now();
+    tick();
+    clearInterval(timerId);
+    timerId = setInterval(tick, 100);
+  }
+
+  function tick() {
+    const total = settings.seconds * 1000;
+    const left = Math.max(0, total - (performance.now() - quiz.startedAt));
+    const frac = left / total;
+    const fill = $("fill");
+    fill.style.transform = `scaleX(${frac})`;
+    fill.style.background = frac > .5 ? "var(--good)" : frac > .25 ? "var(--marigold)" : "var(--bad)";
+    $("secs").textContent = `${Math.ceil(left / 1000)}s`;
+    if (left <= 0) answer(null);
+  }
+
+  function answer(chosen) {
+    if (!quiz || quiz.revealed) return;
+    quiz.revealed = true;
+    clearInterval(timerId);
+    const q = quiz.questions[quiz.index];
+    const correct = chosen === q.answer;
+    quiz.records.push({ q, chosen, correct, ms: performance.now() - quiz.startedAt });
+
+    for (const b of $("options").children) {
+      const v = Number(b.dataset.value);
+      b.disabled = true;
+      if (v === q.answer) b.classList.add("right");
+      else if (v === chosen) b.classList.add("wrong");
+      else b.classList.add("dim");
+    }
+    const fb = $("feedback");
+    fb.className = "feedback " + (correct ? "good" : "bad");
+    fb.textContent = correct ? "Great job! 🎉" : chosen === null ? `Time's up! It's ${q.answer}` : `Oops! It's ${q.answer}`;
+    $("qscore").textContent = `⭐ ${quiz.records.filter((r) => r.correct).length}`;
+
+    pauseId = setTimeout(() => {
+      quiz.index++;
+      if (quiz.index < quiz.questions.length) showQuestion();
+      else showResult();
+    }, correct ? CORRECT_PAUSE : WRONG_PAUSE);
+  }
+
+  function stopQuiz() {
+    clearInterval(timerId); clearTimeout(pauseId);
+    quiz = null;
+    renderHome(); show("home");
+  }
+
+  // ---------- result ----------
+  function showResult() {
+    const recs = quiz.records;
+    const score = recs.filter((r) => r.correct).length;
+    const pct = Math.round(score * 100 / Math.max(1, recs.length));
+    const stars = pct >= 90 ? 3 : pct >= 70 ? 2 : pct >= 40 ? 1 : 0;
+    $("headline").textContent = ["Keep practising, Anshi! 💪", "Good try, Anshi! 👍", "Well done, Anshi! 🎉", "Superstar, Anshi! 🏆"][stars];
+    $("starrow").textContent = "★".repeat(stars) + "☆".repeat(3 - stars);
+    $("score").textContent = `${score} / ${recs.length}`;
+    const answered = recs.filter((r) => r.chosen !== null);
+    const avg = answered.length ? answered.reduce((s, r) => s + r.ms, 0) / answered.length / 1000 : 0;
+    $("stats").textContent = `${pct}% correct · ${avg.toFixed(1)}s per answer`;
+
+    const mistakes = recs.filter((r) => !r.correct);
+    const review = $("review");
+    if (!mistakes.length) {
+      review.innerHTML = `<p class="perfect">No mistakes at all! 🌟</p>`;
+    } else {
+      review.innerHTML = `<h3>Let's learn these:</h3><ul></ul>`;
+      review.querySelector("ul").replaceChildren(...mistakes.map((r) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span class="eq"></span><span class="said"></span>`;
+        li.firstChild.textContent = `${r.q.text} = ${r.q.answer}`;
+        li.lastChild.textContent = r.chosen === null ? "time up" : `you said ${r.chosen}`;
+        return li;
+      }));
+    }
+    show("result");
+  }
+
+  // ---------- wiring ----------
+  $("start").addEventListener("click", startQuiz);
+  $("again").addEventListener("click", startQuiz);
+  $("quit").addEventListener("click", stopQuiz);
+  $("home-btn").addEventListener("click", stopQuiz);
+  document.addEventListener("keydown", (e) => {
+    if ($("quiz").hidden || !quiz || quiz.revealed) return;
+    const i = ["1", "2", "3", "4"].indexOf(e.key);
+    if (i >= 0) answer(quiz.questions[quiz.index].options[i]);
+  });
+
+  renderHome();
+})();
+</script>
+</body>
+</html>

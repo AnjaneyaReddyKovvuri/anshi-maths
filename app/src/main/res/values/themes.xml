@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.AnshiMaths" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#6A3DE8</item>
+        <item name="android:windowBackground">#FFF8F0</item>
+    </style>
+</resources>
