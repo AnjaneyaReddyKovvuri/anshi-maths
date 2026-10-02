@@ -58,4 +58,7 @@ pauses on its own when the phone is locked or she switches apps.
 **Install on Android:** open the link in Chrome → ⋮ menu → "App installieren" (or "Zum Startbildschirm
 hinzufügen" → "Installieren"). It is a PWA (`manifest.webmanifest`, `sw.js`, icons in `docs/`), so after the
 first visit it also works offline and updates itself when online.
+
+**Install on iPhone/iPad:** open the link in Safari → Share button (□↑) → "Zum Home-Bildschirm"
+→ "Hinzufügen". It opens full-screen and works offline like on Android.
 The Android app under `app/` is still the earlier English version (Blitzrechnen only).
