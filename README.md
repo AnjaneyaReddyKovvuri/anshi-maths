@@ -52,6 +52,11 @@ Play online: https://anjaneyareddykovvuri.github.io/anshi-maths/
   minutes and hours). Settings: accuracy (full hour, half, quarter, 5 min, 1 min) and
   12-hour, 24-hour or both formats. With "beide" there are also 12 h ↔ 24 h conversion questions.
 
+**📊 Fortschritt** (button on the start screen) shows a table with one row per day: number of
+questions, % correct and practice time; tap a day to see each test (time, mode, score, quit early).
+Tiles show today's questions, practice days in the last 7 days and the current streak. The history is
+stored in the browser on that device only (`localStorage`, key `anshi-maths-history`).
+
 Every quiz has a **Pause** button that stops the timer and hides the question. The quiz also
 pauses on its own when the phone is locked or she switches apps.
 

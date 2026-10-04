@@ -1,6 +1,6 @@
 // Makes Anshi Maths installable and usable offline.
 // The page is fetched fresh when online (so updates arrive) and served from the cache when offline.
-const CACHE = "anshi-maths-v2";
+const CACHE = "anshi-maths-v3";
 const APP_FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", (event) => {

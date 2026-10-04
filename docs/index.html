@@ -286,6 +286,42 @@
   .perfect { text-align: center; font-family: var(--display); font-weight: 800; font-size: 1.5rem; color: var(--good); margin: 12px 0; }
   .actions { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
 
+  /* ---------- Fortschritt ---------- */
+  .ptitle { font-family: var(--display); font-weight: 800; font-size: 1.9rem; color: var(--grape); margin: 0; line-height: 1.1; }
+  .back { align-self: flex-start; background: none; color: var(--muted); font-weight: 800; padding: 8px 0; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tile {
+    background: var(--card); border: 2px solid var(--line); border-radius: 16px;
+    padding: 10px 6px; text-align: center; display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  }
+  .tile b { font-family: var(--display); font-size: 1.8rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .tile small { color: var(--muted); font-weight: 700; font-size: .75rem; line-height: 1.2; }
+  .table-wrap { overflow-x: auto; background: var(--card); border: 2px solid var(--line); border-radius: 16px; }
+  .history { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; table-layout: fixed; }
+  .history th:first-child { width: 36%; }
+  .history th {
+    text-align: left; font-size: .62rem; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--muted); padding: 10px 8px 8px; border-bottom: 2px solid var(--line); white-space: nowrap;
+  }
+  .history td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+  .history tr:last-child td { border-bottom: 0; }
+  .history tr.day { cursor: pointer; }
+  .history tr.day td:first-child b { display: block; }
+  .history tr.day td:first-child b::before { content: "▸ "; color: var(--muted); }
+  .history tr.day.open td:first-child b::before { content: "▾ "; }
+  .history tr.day td small { color: var(--muted); font-weight: 700; font-size: .75rem; }
+  .history tr.day:focus-visible { outline: 3px solid var(--marigold); outline-offset: -3px; }
+  .history tr.detail td { background: var(--bg); white-space: normal; font-size: .85rem; }
+  .history tr.detail ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .history tr.detail span { font-weight: 800; color: var(--muted); margin-right: 4px; }
+  .history tr.detail em { color: var(--bad); font-style: normal; font-weight: 700; }
+  .pct { display: inline-block; padding: 2px 8px; border-radius: 999px; font-weight: 800; font-size: .85rem; }
+  .pct.good { background: var(--good); color: #fff; }
+  .pct.ok { background: var(--marigold); color: var(--on-marigold); }
+  .pct.low { background: var(--bad); color: #fff; }
+  .empty { background: var(--card); border: 2px dashed var(--line); border-radius: 16px; padding: 18px; margin: 0; color: var(--muted); font-weight: 700; text-align: center; line-height: 1.5; }
+  .ghost.danger { color: var(--bad); }
+
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; }
   }
@@ -358,6 +394,7 @@
 
     <div class="actions">
       <button class="big" id="start">Los geht’s ▶</button>
+      <button class="ghost" id="show-progress">📊 Fortschritt ansehen</button>
     </div>
   </section>
 
@@ -400,6 +437,22 @@
       <button class="big" id="again">Nochmal spielen</button>
       <button class="ghost" id="home-btn">Einstellungen ändern</button>
     </div>
+  </section>
+
+  <!-- FORTSCHRITT -->
+  <section class="screen" id="progress" hidden>
+    <button class="back" id="progress-back">← Zurück</button>
+    <h2 class="ptitle">📊 Anshis Fortschritt</h2>
+    <div class="tiles" id="tiles"></div>
+    <div class="table-wrap" id="history-wrap">
+      <table class="history">
+        <thead><tr><th>Tag</th><th>Anzahl</th><th>Richtig</th><th>Zeit</th></tr></thead>
+        <tbody id="history-body"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="history-empty">Noch keine Übungen gespeichert. Nach dem ersten Test steht hier jeder Tag mit Aufgaben, Ergebnis und Übungszeit.</p>
+    <p class="hint" id="history-hint">Tippe auf einen Tag, um die einzelnen Tests zu sehen. Der Verlauf wird nur auf diesem Gerät gespeichert.</p>
+    <button class="ghost danger" id="clear-history">Verlauf löschen</button>
   </section>
 </div>
 
@@ -803,7 +856,7 @@
   let quiz = null, timerId = null, pauseId = null;
 
   function show(id) {
-    for (const s of ["home", "quiz", "result"]) $(s).hidden = s !== id;
+    for (const s of ["home", "quiz", "result", "progress"]) $(s).hidden = s !== id;
     window.scrollTo(0, 0);
   }
 
@@ -811,7 +864,7 @@
   const withUnit = (question, v) => question.unit ? `${display(question, v)} ${question.unit}` : display(question, v);
 
   function startQuiz() {
-    quiz = { questions: makeQuiz(), index: 0, records: [], seconds: settings[SECONDS_KEY[settings.mode]], paused: false };
+    quiz = { questions: makeQuiz(), index: 0, records: [], mode: settings.mode, seconds: settings[SECONDS_KEY[settings.mode]], paused: false };
     setPausedView(false);
     show("quiz");
     showQuestion();
@@ -916,12 +969,14 @@
 
   function stopQuiz() {
     clearInterval(timerId); clearTimeout(pauseId);
+    saveSession(false); // a quiz quit halfway still counts as practice
     quiz = null;
     renderHome(); show("home");
   }
 
   // ---------- result ----------
   function showResult() {
+    saveSession(true);
     const recs = quiz.records;
     const score = recs.filter((r) => r.correct).length;
     const pct = Math.round(score * 100 / Math.max(1, recs.length));
@@ -960,7 +1015,111 @@
     show("result");
   }
 
+  // ---------- Fortschritt (stored only on this device) ----------
+  const HISTORY_KEY = "anshi-maths-history";
+  const MODE_NAMES = { fast: "⚡ Blitzrechnen", word: "📖 Textaufgaben", clock: "🕐 Uhrzeit" };
+  const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+  const two = (v) => String(v).padStart(2, "0");
+  const dayKey = (d) => `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())}`;
+  const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
+
+  function loadHistory() {
+    try {
+      const h = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      return Array.isArray(h) ? h : [];
+    } catch (e) { return []; }
+  }
+  function saveSession(completed) {
+    if (!quiz || quiz.saved || !quiz.records.length) return;
+    quiz.saved = true;
+    const now = new Date();
+    const session = {
+      day: dayKey(now), time: `${two(now.getHours())}:${two(now.getMinutes())}`, mode: quiz.mode,
+      total: quiz.records.length, correct: quiz.records.filter((r) => r.correct).length,
+      seconds: Math.round(quiz.records.reduce((sum, r) => sum + r.ms, 0) / 1000), completed,
+    };
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify([...loadHistory(), session].slice(-3000))); } catch (e) {}
+  }
+
+  const fmtSpent = (sec) => sec < 60 ? `${sec} s` : `${Math.round(sec / 60)} Min.`;
+  function pctChip(correct, total) {
+    const p = Math.round(correct * 100 / Math.max(1, total));
+    return `<span class="pct ${p >= 90 ? "good" : p >= 70 ? "ok" : "low"}">${p} %</span>`;
+  }
+  function fmtDay(key) {
+    if (key === dayKey(new Date())) return "Heute";
+    if (key === dayKey(daysAgo(1))) return "Gestern";
+    const [y, m, d] = key.split("-").map(Number);
+    return `${WEEKDAYS[new Date(y, m - 1, d).getDay()]}, ${two(d)}.${two(m)}.`;
+  }
+  // Consecutive practice days, ending today (or yesterday if she hasn't practised yet today).
+  function streak(days) {
+    const set = new Set(days), d = new Date();
+    if (!set.has(dayKey(d))) d.setDate(d.getDate() - 1);
+    let count = 0;
+    while (set.has(dayKey(d))) { count++; d.setDate(d.getDate() - 1); }
+    return count;
+  }
+
+  function renderProgress() {
+    const byDay = new Map();
+    for (const sess of loadHistory()) {
+      if (!byDay.has(sess.day)) byDay.set(sess.day, []);
+      byDay.get(sess.day).push(sess);
+    }
+    const days = [...byDay.keys()].sort().reverse();
+    const sum = (list, key) => list.reduce((acc, sess) => acc + sess[key], 0);
+    const today = byDay.get(dayKey(new Date())) || [];
+    const weekStart = dayKey(daysAgo(6));
+    $("tiles").innerHTML = `
+      <div class="tile"><b>${sum(today, "total")}</b><small>Aufgaben heute</small></div>
+      <div class="tile"><b>${days.filter((d) => d >= weekStart).length}/7</b><small>Tage geübt (7 Tage)</small></div>
+      <div class="tile"><b>${streak(days)}</b><small>Tage in Folge 🔥</small></div>`;
+    const empty = days.length === 0;
+    $("history-empty").hidden = !empty;
+    $("history-wrap").hidden = empty;
+    $("history-hint").hidden = empty;
+    $("clear-history").hidden = empty;
+
+    const rows = [];
+    for (const day of days) {
+      const list = byDay.get(day);
+      const tr = document.createElement("tr");
+      tr.className = "day"; tr.tabIndex = 0;
+      tr.innerHTML = `<td><b>${fmtDay(day)}</b><small>${list.length} ${list.length === 1 ? "Test" : "Tests"}</small></td>
+        <td>${sum(list, "total")}</td><td>${pctChip(sum(list, "correct"), sum(list, "total"))}</td><td>${fmtSpent(sum(list, "seconds"))}</td>`;
+      const detail = document.createElement("tr");
+      detail.className = "detail"; detail.hidden = true;
+      detail.innerHTML = `<td colspan="4"><ul>${list.map((sess) =>
+        `<li><span>${sess.time}</span>${MODE_NAMES[sess.mode] || ""} · ${sess.correct}/${sess.total} richtig · ${fmtSpent(sess.seconds)}${sess.completed ? "" : " · <em>abgebrochen</em>"}</li>`
+      ).join("")}</ul></td>`;
+      const toggleRow = () => { detail.hidden = !detail.hidden; tr.classList.toggle("open", !detail.hidden); };
+      tr.addEventListener("click", toggleRow);
+      tr.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleRow(); } });
+      rows.push(tr, detail);
+    }
+    $("history-body").replaceChildren(...rows);
+  }
+
+  // Deleting needs a second tap, so it can't happen by accident.
+  let clearArmed = null;
+  function clearHistory() {
+    const btn = $("clear-history");
+    if (!clearArmed) {
+      btn.textContent = "Wirklich alles löschen? Zum Bestätigen nochmal tippen";
+      clearArmed = setTimeout(() => { clearArmed = null; btn.textContent = "Verlauf löschen"; }, 4000);
+      return;
+    }
+    clearTimeout(clearArmed); clearArmed = null;
+    btn.textContent = "Verlauf löschen";
+    try { localStorage.removeItem(HISTORY_KEY); } catch (e) {}
+    renderProgress();
+  }
+
   // ---------- wiring ----------
+  $("show-progress").addEventListener("click", () => { renderProgress(); show("progress"); });
+  $("progress-back").addEventListener("click", () => show("home"));
+  $("clear-history").addEventListener("click", clearHistory);
   $("start").addEventListener("click", startQuiz);
   $("again").addEventListener("click", startQuiz);
   $("quit").addEventListener("click", stopQuiz);
